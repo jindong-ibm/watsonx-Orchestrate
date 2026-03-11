@@ -1,0 +1,7 @@
+2024-03-15 08:01:10,456 AUDIT [audit-svc] action=PAYMENT_INITIATED transaction-id=TXN-20240315-001 user-id=USR-42 ip=192.168.1.55
+2024-03-15 08:01:15,900 AUDIT [audit-svc] action=PAYMENT_FAILED transaction-id=TXN-20240315-001 user-id=USR-42 reason="Insufficient funds" risk_score=0.12
+2024-03-15 08:01:16,850 AUDIT [audit-svc] action=NOTIFICATION_SENT transaction-id=TXN-20240315-001 channel=email status=DELIVERED
+2024-03-15 08:01:20,100 AUDIT [audit-svc] action=PAYMENT_INITIATED transaction-id=TXN-20240315-003 user-id=USR-42 ip=192.168.1.55
+2024-03-15 08:01:21,200 AUDIT [audit-svc] action=PAYMENT_SUCCESS transaction-id=TXN-20240315-003 user-id=USR-42 auth_code=AUTH-9981
+2024-03-15 08:02:00,050 AUDIT [audit-svc] action=SESSION_TERMINATED transaction-id=TXN-20240315-004 user-id=USR-99 ip=10.0.0.8
+2024-03-15 08:05:00,000 AUDIT [audit-svc] daily_summary total_transactions=3 failed=1 succeeded=2

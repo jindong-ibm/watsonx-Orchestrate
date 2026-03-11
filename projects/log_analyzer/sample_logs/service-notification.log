@@ -1,0 +1,11 @@
+2024-03-15T08:00:30.000Z INFO  [notify-svc] Notification service ready
+2024-03-15T08:01:16.000Z INFO  [notify-svc] Received notification request transaction-id=TXN-20240315-001 type=EMAIL recipient=user42@example.com
+2024-03-15T08:01:16.100Z INFO  [notify-svc] Rendering email template transaction-id=TXN-20240315-001 template=payment_failed
+2024-03-15T08:01:16.200Z INFO  [notify-svc] Email rendered successfully transaction-id=TXN-20240315-001 subject="Payment of $250.00 was declined"
+2024-03-15T08:01:16.350Z INFO  [notify-svc] Sending email via SMTP transaction-id=TXN-20240315-001 smtp_host=smtp.example.com
+2024-03-15T08:01:16.800Z INFO  [notify-svc] Email delivered successfully transaction-id=TXN-20240315-001 message_id=MSG-20240315-8821
+2024-03-15T08:01:16.850Z INFO  [notify-svc] PaymentFailed notification sent transaction-id=TXN-20240315-001 channel=email status=DELIVERED
+2024-03-15T08:01:21.400Z INFO  [notify-svc] Received notification request transaction-id=TXN-20240315-003 type=EMAIL recipient=user42@example.com
+2024-03-15T08:01:21.500Z INFO  [notify-svc] Rendering email template transaction-id=TXN-20240315-003 template=payment_success
+2024-03-15T08:01:21.600Z INFO  [notify-svc] Email delivered successfully transaction-id=TXN-20240315-003 message_id=MSG-20240315-8822
+2024-03-15T08:03:00.000Z INFO  [notify-svc] Daily digest scheduled for 09:00

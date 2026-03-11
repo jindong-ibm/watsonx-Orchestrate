@@ -1,0 +1,134 @@
+================================================================================
+WATSONX ORCHESTRATE DIAGNOSTICS ANALYSIS REPORT
+================================================================================
+Generated: 2026-03-04T15:43:17.347354
+Diagnostics Folder: /Users/jingdongsun/Desktop/MySkilletProjects/wxo_bob/log_analyzer/sample_diagnostics
+Event Searched: ERROR
+Correlation Key: pod
+================================================================================
+
+================================================================================
+SECTION 1: POD HEALTH CHECK
+================================================================================
+Source: /Users/jingdongsun/Desktop/MySkilletProjects/wxo_bob/log_analyzer/sample_diagnostics/Healthcheck/summary.html
+
+Total pods found    : 12
+Running pods        : 8
+Non-running pods    : 4
+
+Non-Running Pods:
+--------------------------------------------------------------------------------
+  [CRASHLOOPBACKOFF    ] zen-watcher-5c9d8f7b4-p3q1r
+  [PENDING             ] assistant-gateway-7f9c8d6b5-r5s3t
+  [CRASHLOOPBACKOFF    ] Status
+  [PENDING             ] Status
+
+
+================================================================================
+SECTION 2: LOG ANALYSIS SUMMARY
+================================================================================
+Log folder          : /Users/jingdongsun/Desktop/MySkilletProjects/wxo_bob/log_analyzer/sample_diagnostics/watsonx Orchestrate/hub/containerLogs/cpd-instance-1
+Log files scanned   : 3
+Event searched      : 'ERROR'
+Event hits          : 8
+Correlation key     : 'pod'
+Correlation values  : assistant-gateway-7f9c8d6b5-r5s3t, zen-watcher-5c9d8f7b4-p3q1r, remains
+Journey entries     : 27
+Entries with ts     : 27
+Root cause          : Out of Memory (CRITICAL)
+
+================================================================================
+SECTION 3: EVENT JOURNEY (sorted by timestamp)
+================================================================================
+
+Log Event Journey  –  generated 2026-03-04T15:43:17.347510
+================================================================================
+
+
+▶ FILE: assistant-gateway.log
+────────────────────────────────────────────────────────────────────────────────
+  [2024-03-15T10:20:00.001Z] L    1 [CTX]  2024-03-15T10:20:00.001Z INFO  [gateway] Assistant Gateway starting pod=assistant-gateway-7f9c8d6b5-r5s3t
+  [2024-03-15T10:20:01.234Z] L    2 [CTX]  2024-03-15T10:20:01.234Z INFO  [gateway] Loading configuration pod=assistant-gateway-7f9c8d6b5-r5s3t
+  [2024-03-15T10:20:02.567Z] L    3 [CTX]  2024-03-15T10:20:02.567Z INFO  [gateway] Waiting for image pull pod=assistant-gateway-7f9c8d6b5-r5s3t image=icr.io/cpopen/assistant-gateway:v2.1.0
+  [2024-03-15T10:20:30.890Z] L    4 [CTX]  2024-03-15T10:20:30.890Z WARN  [gateway] Image pull slow - checking registry connectivity pod=assistant-gateway-7f9c8d6b5-r5s3t
+  [2024-03-15T10:21:00.123Z] L    5 [EVENT] [CTX]  2024-03-15T10:21:00.123Z ERROR [gateway] ImagePullBackOff - cannot pull image pod=assistant-gateway-7f9c8d6b5-r5s3t error="failed to pull image: connection timeout"
+  [2024-03-15T10:21:30.456Z] L    6 [CTX]  2024-03-15T10:21:30.456Z INFO  [gateway] Retrying image pull pod=assistant-gateway-7f9c8d6b5-r5s3t attempt=2
+  [2024-03-15T10:22:00.789Z] L    7 [EVENT] [CTX]  2024-03-15T10:22:00.789Z ERROR [gateway] ImagePullBackOff - cannot pull image pod=assistant-gateway-7f9c8d6b5-r5s3t error="failed to pull image: connection timeout"
+  [2024-03-15T10:22:30.012Z] L    8 [CTX]  2024-03-15T10:22:30.012Z WARN  [gateway] Pod stuck in Pending state pod=assistant-gateway-7f9c8d6b5-r5s3t duration=2m30s
+  [2024-03-15T10:25:00.345Z] L    9 [CTX]  2024-03-15T10:25:00.345Z INFO  [gateway] Retrying image pull pod=assistant-gateway-7f9c8d6b5-r5s3t attempt=3
+
+▶ FILE: zen-watcher.log
+────────────────────────────────────────────────────────────────────────────────
+  [2024-03-15T10:25:01.456Z] L    2 [CTX]  2024-03-15T10:25:01.456Z INFO  [zen-watcher] Connecting to zen-metastore-edb pod=zen-watcher-5c9d8f7b4-p3q1r
+  [2024-03-15T10:25:02.789Z] L    3 [CTX]  2024-03-15T10:25:02.789Z INFO  [zen-watcher] Database connection established pod=zen-watcher-5c9d8f7b4-p3q1r
+  [2024-03-15T10:25:05.012Z] L    4 [CTX]  2024-03-15T10:25:05.012Z INFO  [zen-watcher] Initializing watchers pod=zen-watcher-5c9d8f7b4-p3q1r
+  [2024-03-15T10:25:10.345Z] L    5 [CTX]  2024-03-15T10:25:10.345Z INFO  [zen-watcher] Started 5 resource watchers pod=zen-watcher-5c9d8f7b4-p3q1r
+
+▶ FILE: assistant-gateway.log
+────────────────────────────────────────────────────────────────────────────────
+  [2024-03-15T10:26:15.678Z] L   10 [EVENT] [CTX]  2024-03-15T10:26:15.678Z ERROR [gateway] Timeout pulling image after 6 minutes pod=assistant-gateway-7f9c8d6b5-r5s3t
+
+▶ FILE: zen-watcher.log
+────────────────────────────────────────────────────────────────────────────────
+  [2024-03-15T10:26:15.678Z] L    6 [CTX]  2024-03-15T10:26:15.678Z WARN  [zen-watcher] High memory usage detected: 85% pod=zen-watcher-5c9d8f7b4-p3q1r heap_used_mb=1700 heap_max_mb=2000
+
+▶ FILE: assistant-gateway.log
+────────────────────────────────────────────────────────────────────────────────
+  [2024-03-15T10:26:15.901Z] L   11 [EVENT] [CTX]  2024-03-15T10:26:15.901Z ERROR [gateway] Pod remains in Pending state pod=assistant-gateway-7f9c8d6b5-r5s3t check_registry=true check_network=true
+
+▶ FILE: zen-watcher.log
+────────────────────────────────────────────────────────────────────────────────
+  [2024-03-15T10:26:45.901Z] L    7 [CTX]  2024-03-15T10:26:45.901Z WARN  [zen-watcher] Memory pressure increasing pod=zen-watcher-5c9d8f7b4-p3q1r heap_used_mb=1850 heap_max_mb=2000
+  [2024-03-15T10:27:12.234Z] L    8 [EVENT] [CTX]  2024-03-15T10:27:12.234Z ERROR [zen-watcher] OutOfMemory error in watcher thread pod=zen-watcher-5c9d8f7b4-p3q1r thread=resource-watcher-3
+  [2024-03-15T10:27:12.567Z] L    9 [EVENT] [CTX]  2024-03-15T10:27:12.567Z ERROR [zen-watcher] java.lang.OutOfMemoryError: Java heap space pod=zen-watcher-5c9d8f7b4-p3q1r
+  [2024-03-15T10:27:12.890Z] L   10 [EVENT] [CTX]  2024-03-15T10:27:12.890Z ERROR [zen-watcher] at com.ibm.zen.watcher.ResourceWatcher.processEvents(ResourceWatcher.java:245) pod=zen-watcher-5c9d8f7b4-p3q1r
+  [2024-03-15T10:27:13.123Z] L   11 [CTX]  2024-03-15T10:27:13.123Z FATAL [zen-watcher] Service crashed due to OutOfMemory pod=zen-watcher-5c9d8f7b4-p3q1r exit_code=137
+  [2024-03-15T10:27:20.456Z] L   12 [CTX]  2024-03-15T10:27:20.456Z INFO  [zen-watcher] Starting zen-watcher service v2.1.0 pod=zen-watcher-5c9d8f7b4-p3q1r restart=1
+  [2024-03-15T10:27:21.789Z] L   13 [CTX]  2024-03-15T10:27:21.789Z INFO  [zen-watcher] Connecting to zen-metastore-edb pod=zen-watcher-5c9d8f7b4-p3q1r
+  [2024-03-15T10:27:23.012Z] L   14 [CTX]  2024-03-15T10:27:23.012Z INFO  [zen-watcher] Database connection established pod=zen-watcher-5c9d8f7b4-p3q1r
+  [2024-03-15T10:28:30.345Z] L   15 [CTX]  2024-03-15T10:28:30.345Z WARN  [zen-watcher] High memory usage detected: 82% pod=zen-watcher-5c9d8f7b4-p3q1r heap_used_mb=1640 heap_max_mb=2000
+  [2024-03-15T10:29:05.678Z] L   16 [EVENT] [CTX]  2024-03-15T10:29:05.678Z ERROR [zen-watcher] OutOfMemory error in watcher thread pod=zen-watcher-5c9d8f7b4-p3q1r thread=resource-watcher-2
+  [2024-03-15T10:29:05.901Z] L   17 [CTX]  2024-03-15T10:29:05.901Z FATAL [zen-watcher] Service crashed due to OutOfMemory pod=zen-watcher-5c9d8f7b4-p3q1r exit_code=137 restart=2
+
+
+================================================================================
+ROOT CAUSE ANALYSIS
+================================================================================
+
+  Most Likely Root Cause
+  ────────────────────────────────────────────────────────────
+  Category  : Out of Memory
+  Severity  : CRITICAL
+  Summary   : An out-of-memory condition was detected.
+  Suggestion: Increase heap/memory limits, profile for memory leaks, or scale horizontally.
+
+  Timeline  : journey spans 545.9 seconds
+
+  All Detected Signals
+  ────────────────────────────────────────────────────────────
+   1. [CRITICAL] Out of Memory  –  An out-of-memory condition was detected.
+      Suggestion: Increase heap/memory limits, profile for memory leaks, or scale horizontally.
+   2. [HIGH] Timeout  –  A timeout was detected in the log journey.
+      Suggestion: Check network latency, upstream service SLAs, and client/server timeout configurations.
+   3. [MEDIUM] Generic Error  –  A generic ERROR/FATAL log level entry was found.
+      Suggestion: Review the full error message and surrounding context for more specific clues.
+   4. [LOW] Warning  –  Warning-level entries were present in the journey.
+      Suggestion: Warnings may be precursors to the failure; investigate whether they contributed.
+
+  Evidence Lines
+  ────────────────────────────────────────────────────────────
+  [CRITICAL] zen-watcher.log:L8  2024-03-15T10:27:12.234Z ERROR [zen-watcher] OutOfMemory error in watcher thread pod=zen-watcher-5c9d8f7b4-p3q1r thread=resource-watcher-3
+  [CRITICAL] zen-watcher.log:L9  2024-03-15T10:27:12.567Z ERROR [zen-watcher] java.lang.OutOfMemoryError: Java heap space pod=zen-watcher-5c9d8f7b4-p3q1r
+  [CRITICAL] zen-watcher.log:L11  2024-03-15T10:27:13.123Z FATAL [zen-watcher] Service crashed due to OutOfMemory pod=zen-watcher-5c9d8f7b4-p3q1r exit_code=137
+  [CRITICAL] zen-watcher.log:L16  2024-03-15T10:29:05.678Z ERROR [zen-watcher] OutOfMemory error in watcher thread pod=zen-watcher-5c9d8f7b4-p3q1r thread=resource-watcher-2
+  [CRITICAL] zen-watcher.log:L17  2024-03-15T10:29:05.901Z FATAL [zen-watcher] Service crashed due to OutOfMemory pod=zen-watcher-5c9d8f7b4-p3q1r exit_code=137 restart=2
+  [HIGH] assistant-gateway.log:L5  2024-03-15T10:21:00.123Z ERROR [gateway] ImagePullBackOff - cannot pull image pod=assistant-gateway-7f9c8d6b5-r5s3t error="failed to pull image: connection timeout"
+  [HIGH] assistant-gateway.log:L7  2024-03-15T10:22:00.789Z ERROR [gateway] ImagePullBackOff - cannot pull image pod=assistant-gateway-7f9c8d6b5-r5s3t error="failed to pull image: connection timeout"
+  [HIGH] assistant-gateway.log:L10  2024-03-15T10:26:15.678Z ERROR [gateway] Timeout pulling image after 6 minutes pod=assistant-gateway-7f9c8d6b5-r5s3t
+  [MEDIUM] assistant-gateway.log:L11  2024-03-15T10:26:15.901Z ERROR [gateway] Pod remains in Pending state pod=assistant-gateway-7f9c8d6b5-r5s3t check_registry=true check_network=true
+  [MEDIUM] zen-watcher.log:L10  2024-03-15T10:27:12.890Z ERROR [zen-watcher] at com.ibm.zen.watcher.ResourceWatcher.processEvents(ResourceWatcher.java:245) pod=zen-watcher-5c9d8f7b4-p3q1r
+  [LOW] assistant-gateway.log:L4  2024-03-15T10:20:30.890Z WARN  [gateway] Image pull slow - checking registry connectivity pod=assistant-gateway-7f9c8d6b5-r5s3t
+  [LOW] assistant-gateway.log:L8  2024-03-15T10:22:30.012Z WARN  [gateway] Pod stuck in Pending state pod=assistant-gateway-7f9c8d6b5-r5s3t duration=2m30s
+  [LOW] zen-watcher.log:L6  2024-03-15T10:26:15.678Z WARN  [zen-watcher] High memory usage detected: 85% pod=zen-watcher-5c9d8f7b4-p3q1r heap_used_mb=1700 heap_max_mb=2000
+  [LOW] zen-watcher.log:L7  2024-03-15T10:26:45.901Z WARN  [zen-watcher] Memory pressure increasing pod=zen-watcher-5c9d8f7b4-p3q1r heap_used_mb=1850 heap_max_mb=2000
+  [LOW] zen-watcher.log:L15  2024-03-15T10:28:30.345Z WARN  [zen-watcher] High memory usage detected: 82% pod=zen-watcher-5c9d8f7b4-p3q1r heap_used_mb=1640 heap_max_mb=2000

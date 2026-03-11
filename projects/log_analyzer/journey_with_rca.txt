@@ -1,0 +1,100 @@
+Log Event Journey  –  generated 2026-02-27T14:51:50.950418
+================================================================================
+
+
+▶ FILE: service-audit.log
+────────────────────────────────────────────────────────────────────────────────
+  [2024-03-15 08:01:10,456] L    1 [CTX]  2024-03-15 08:01:10,456 AUDIT [audit-svc] action=PAYMENT_INITIATED transaction-id=TXN-20240315-001 user-id=USR-42 ip=192.168.1.55
+
+▶ FILE: service-gateway.log
+────────────────────────────────────────────────────────────────────────────────
+  [2024-03-15T08:01:10.456Z] L    3 [CTX]  2024-03-15T08:01:10.456Z INFO  [gateway] Incoming request POST /api/payment transaction-id=TXN-20240315-001 user-id=USR-42
+  [2024-03-15T08:01:10.512Z] L    4 [CTX]  2024-03-15T08:01:10.512Z INFO  [gateway] Request routed to payment-service transaction-id=TXN-20240315-001
+
+▶ FILE: service-payment.log
+────────────────────────────────────────────────────────────────────────────────
+  [2024-03-15T08:01:10.600Z] L    1 [CTX]  2024-03-15T08:01:10.600Z INFO  [payment-svc] Received payment request transaction-id=TXN-20240315-001 amount=250.00 currency=USD
+  [2024-03-15T08:01:10.650Z] L    2 [CTX]  2024-03-15T08:01:10.650Z INFO  [payment-svc] Validating card details transaction-id=TXN-20240315-001 card_last4=4242
+  [2024-03-15T08:01:11.200Z] L    3 [CTX]  2024-03-15T08:01:11.200Z INFO  [payment-svc] Card validation passed transaction-id=TXN-20240315-001
+  [2024-03-15T08:01:11.250Z] L    4 [CTX]  2024-03-15T08:01:11.250Z INFO  [payment-svc] Calling bank authorization API transaction-id=TXN-20240315-001 bank=CHASE
+  [2024-03-15T08:01:14.900Z] L    5 [CTX]  2024-03-15T08:01:14.900Z WARN  [payment-svc] Bank API slow response transaction-id=TXN-20240315-001 elapsed_ms=3650
+  [2024-03-15T08:01:15.700Z] L    6 [EVENT] [CTX]  2024-03-15T08:01:15.700Z ERROR [payment-svc] PaymentFailed bank declined transaction transaction-id=TXN-20240315-001 decline_code=51 reason="Insufficient funds"
+  [2024-03-15T08:01:15.750Z] L    7 [CTX]  2024-03-15T08:01:15.750Z INFO  [payment-svc] Updating payment record to FAILED transaction-id=TXN-20240315-001
+
+▶ FILE: service-gateway.log
+────────────────────────────────────────────────────────────────────────────────
+  [2024-03-15T08:01:15.789Z] L    7 [CTX]  2024-03-15T08:01:15.789Z WARN  [gateway] Slow response detected transaction-id=TXN-20240315-001 elapsed_ms=5277
+
+▶ FILE: service-payment.log
+────────────────────────────────────────────────────────────────────────────────
+  [2024-03-15T08:01:15.800Z] L    8 [CTX]  2024-03-15T08:01:15.800Z INFO  [payment-svc] Sending failure notification to user transaction-id=TXN-20240315-001 user-id=USR-42
+
+▶ FILE: service-audit.log
+────────────────────────────────────────────────────────────────────────────────
+  [2024-03-15 08:01:15,900] L    2 [CTX]  2024-03-15 08:01:15,900 AUDIT [audit-svc] action=PAYMENT_FAILED transaction-id=TXN-20240315-001 user-id=USR-42 reason="Insufficient funds" risk_score=0.12
+
+▶ FILE: service-payment.log
+────────────────────────────────────────────────────────────────────────────────
+  [2024-03-15T08:01:15.900Z] L    9 [CTX]  2024-03-15T08:01:15.900Z INFO  [payment-svc] Payment request completed with error transaction-id=TXN-20240315-001 final_status=FAILED
+
+▶ FILE: service-notification.log
+────────────────────────────────────────────────────────────────────────────────
+  [2024-03-15T08:01:16.000Z] L    2 [CTX]  2024-03-15T08:01:16.000Z INFO  [notify-svc] Received notification request transaction-id=TXN-20240315-001 type=EMAIL recipient=user42@example.com
+
+▶ FILE: service-gateway.log
+────────────────────────────────────────────────────────────────────────────────
+  [2024-03-15T08:01:16.001Z] L    8 [EVENT] [CTX]  2024-03-15T08:01:16.001Z ERROR [gateway] PaymentFailed upstream error transaction-id=TXN-20240315-001 status=500 reason="Insufficient funds"
+  [2024-03-15T08:01:16.050Z] L    9 [CTX]  2024-03-15T08:01:16.050Z INFO  [gateway] Response sent to client transaction-id=TXN-20240315-001 http_status=402
+
+▶ FILE: service-notification.log
+────────────────────────────────────────────────────────────────────────────────
+  [2024-03-15T08:01:16.100Z] L    3 [CTX]  2024-03-15T08:01:16.100Z INFO  [notify-svc] Rendering email template transaction-id=TXN-20240315-001 template=payment_failed
+  [2024-03-15T08:01:16.200Z] L    4 [CTX]  2024-03-15T08:01:16.200Z INFO  [notify-svc] Email rendered successfully transaction-id=TXN-20240315-001 subject="Payment of $250.00 was declined"
+  [2024-03-15T08:01:16.350Z] L    5 [CTX]  2024-03-15T08:01:16.350Z INFO  [notify-svc] Sending email via SMTP transaction-id=TXN-20240315-001 smtp_host=smtp.example.com
+  [2024-03-15T08:01:16.800Z] L    6 [CTX]  2024-03-15T08:01:16.800Z INFO  [notify-svc] Email delivered successfully transaction-id=TXN-20240315-001 message_id=MSG-20240315-8821
+
+▶ FILE: service-audit.log
+────────────────────────────────────────────────────────────────────────────────
+  [2024-03-15 08:01:16,850] L    3 [CTX]  2024-03-15 08:01:16,850 AUDIT [audit-svc] action=NOTIFICATION_SENT transaction-id=TXN-20240315-001 channel=email status=DELIVERED
+
+▶ FILE: service-notification.log
+────────────────────────────────────────────────────────────────────────────────
+  [2024-03-15T08:01:16.850Z] L    7 [EVENT] [CTX]  2024-03-15T08:01:16.850Z INFO  [notify-svc] PaymentFailed notification sent transaction-id=TXN-20240315-001 channel=email status=DELIVERED
+
+
+================================================================================
+ROOT CAUSE ANALYSIS
+================================================================================
+
+  Most Likely Root Cause
+  ────────────────────────────────────────────────────────────
+  Category  : HTTP 5xx Error
+  Severity  : CRITICAL
+  Summary   : An HTTP 5xx server-side error was returned.
+  Suggestion: Examine the responding service logs for stack traces or resource exhaustion.
+
+  Timeline  : journey spans 6.4 seconds
+
+  All Detected Signals
+  ────────────────────────────────────────────────────────────
+   1. [CRITICAL] HTTP 5xx Error  –  An HTTP 5xx server-side error was returned.
+      Suggestion: Examine the responding service logs for stack traces or resource exhaustion.
+   2. [HIGH] Payment Declined  –  A payment was declined by the bank or payment processor.
+      Suggestion: The decline is typically a business-level event; surface a clear error to the user and offer retry or alternative payment.
+   3. [HIGH] HTTP 4xx Error  –  An HTTP 4xx client-side error was returned.
+      Suggestion: Check request payload, authentication tokens, and API contract compliance.
+   4. [MEDIUM] High Latency  –  Unusually high response latency was observed (≥5 s).
+      Suggestion: Profile the slow component; check for lock contention, N+1 queries, or GC pauses.
+   5. [MEDIUM] Generic Error  –  A generic ERROR/FATAL log level entry was found.
+      Suggestion: Review the full error message and surrounding context for more specific clues.
+
+  Evidence Lines
+  ────────────────────────────────────────────────────────────
+  [CRITICAL] service-gateway.log:L8  2024-03-15T08:01:16.001Z ERROR [gateway] PaymentFailed upstream error transaction-id=TXN-20240315-001 status=500 reason="Insufficient funds"
+  [HIGH] service-payment.log:L6  2024-03-15T08:01:15.700Z ERROR [payment-svc] PaymentFailed bank declined transaction transaction-id=TXN-20240315-001 decline_code=51 reason="Insufficient funds"
+  [HIGH] service-audit.log:L2  2024-03-15 08:01:15,900 AUDIT [audit-svc] action=PAYMENT_FAILED transaction-id=TXN-20240315-001 user-id=USR-42 reason="Insufficient funds" risk_score=0.12
+  [HIGH] service-notification.log:L4  2024-03-15T08:01:16.200Z INFO  [notify-svc] Email rendered successfully transaction-id=TXN-20240315-001 subject="Payment of $250.00 was declined"
+  [HIGH] service-gateway.log:L9  2024-03-15T08:01:16.050Z INFO  [gateway] Response sent to client transaction-id=TXN-20240315-001 http_status=402
+  [MEDIUM] service-payment.log:L5  2024-03-15T08:01:14.900Z WARN  [payment-svc] Bank API slow response transaction-id=TXN-20240315-001 elapsed_ms=3650
+  [MEDIUM] service-gateway.log:L7  2024-03-15T08:01:15.789Z WARN  [gateway] Slow response detected transaction-id=TXN-20240315-001 elapsed_ms=5277
+  [MEDIUM] service-payment.log:L9  2024-03-15T08:01:15.900Z INFO  [payment-svc] Payment request completed with error transaction-id=TXN-20240315-001 final_status=FAILED

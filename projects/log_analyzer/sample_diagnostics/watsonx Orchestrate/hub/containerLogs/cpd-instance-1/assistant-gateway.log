@@ -1,0 +1,11 @@
+2024-03-15T10:20:00.001Z INFO  [gateway] Assistant Gateway starting pod=assistant-gateway-7f9c8d6b5-r5s3t
+2024-03-15T10:20:01.234Z INFO  [gateway] Loading configuration pod=assistant-gateway-7f9c8d6b5-r5s3t
+2024-03-15T10:20:02.567Z INFO  [gateway] Waiting for image pull pod=assistant-gateway-7f9c8d6b5-r5s3t image=icr.io/cpopen/assistant-gateway:v2.1.0
+2024-03-15T10:20:30.890Z WARN  [gateway] Image pull slow - checking registry connectivity pod=assistant-gateway-7f9c8d6b5-r5s3t
+2024-03-15T10:21:00.123Z ERROR [gateway] ImagePullBackOff - cannot pull image pod=assistant-gateway-7f9c8d6b5-r5s3t error="failed to pull image: connection timeout"
+2024-03-15T10:21:30.456Z INFO  [gateway] Retrying image pull pod=assistant-gateway-7f9c8d6b5-r5s3t attempt=2
+2024-03-15T10:22:00.789Z ERROR [gateway] ImagePullBackOff - cannot pull image pod=assistant-gateway-7f9c8d6b5-r5s3t error="failed to pull image: connection timeout"
+2024-03-15T10:22:30.012Z WARN  [gateway] Pod stuck in Pending state pod=assistant-gateway-7f9c8d6b5-r5s3t duration=2m30s
+2024-03-15T10:25:00.345Z INFO  [gateway] Retrying image pull pod=assistant-gateway-7f9c8d6b5-r5s3t attempt=3
+2024-03-15T10:26:15.678Z ERROR [gateway] Timeout pulling image after 6 minutes pod=assistant-gateway-7f9c8d6b5-r5s3t
+2024-03-15T10:26:15.901Z ERROR [gateway] Pod remains in Pending state pod=assistant-gateway-7f9c8d6b5-r5s3t check_registry=true check_network=true

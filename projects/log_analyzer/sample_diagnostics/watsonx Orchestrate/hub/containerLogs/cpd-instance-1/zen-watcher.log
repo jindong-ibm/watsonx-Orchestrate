@@ -1,0 +1,17 @@
+2024-03-15T10:25:00.123Z INFO  [zen-watcher] Starting zen-watcher service v2.1.0
+2024-03-15T10:25:01.456Z INFO  [zen-watcher] Connecting to zen-metastore-edb pod=zen-watcher-5c9d8f7b4-p3q1r
+2024-03-15T10:25:02.789Z INFO  [zen-watcher] Database connection established pod=zen-watcher-5c9d8f7b4-p3q1r
+2024-03-15T10:25:05.012Z INFO  [zen-watcher] Initializing watchers pod=zen-watcher-5c9d8f7b4-p3q1r
+2024-03-15T10:25:10.345Z INFO  [zen-watcher] Started 5 resource watchers pod=zen-watcher-5c9d8f7b4-p3q1r
+2024-03-15T10:26:15.678Z WARN  [zen-watcher] High memory usage detected: 85% pod=zen-watcher-5c9d8f7b4-p3q1r heap_used_mb=1700 heap_max_mb=2000
+2024-03-15T10:26:45.901Z WARN  [zen-watcher] Memory pressure increasing pod=zen-watcher-5c9d8f7b4-p3q1r heap_used_mb=1850 heap_max_mb=2000
+2024-03-15T10:27:12.234Z ERROR [zen-watcher] OutOfMemory error in watcher thread pod=zen-watcher-5c9d8f7b4-p3q1r thread=resource-watcher-3
+2024-03-15T10:27:12.567Z ERROR [zen-watcher] java.lang.OutOfMemoryError: Java heap space pod=zen-watcher-5c9d8f7b4-p3q1r
+2024-03-15T10:27:12.890Z ERROR [zen-watcher] at com.ibm.zen.watcher.ResourceWatcher.processEvents(ResourceWatcher.java:245) pod=zen-watcher-5c9d8f7b4-p3q1r
+2024-03-15T10:27:13.123Z FATAL [zen-watcher] Service crashed due to OutOfMemory pod=zen-watcher-5c9d8f7b4-p3q1r exit_code=137
+2024-03-15T10:27:20.456Z INFO  [zen-watcher] Starting zen-watcher service v2.1.0 pod=zen-watcher-5c9d8f7b4-p3q1r restart=1
+2024-03-15T10:27:21.789Z INFO  [zen-watcher] Connecting to zen-metastore-edb pod=zen-watcher-5c9d8f7b4-p3q1r
+2024-03-15T10:27:23.012Z INFO  [zen-watcher] Database connection established pod=zen-watcher-5c9d8f7b4-p3q1r
+2024-03-15T10:28:30.345Z WARN  [zen-watcher] High memory usage detected: 82% pod=zen-watcher-5c9d8f7b4-p3q1r heap_used_mb=1640 heap_max_mb=2000
+2024-03-15T10:29:05.678Z ERROR [zen-watcher] OutOfMemory error in watcher thread pod=zen-watcher-5c9d8f7b4-p3q1r thread=resource-watcher-2
+2024-03-15T10:29:05.901Z FATAL [zen-watcher] Service crashed due to OutOfMemory pod=zen-watcher-5c9d8f7b4-p3q1r exit_code=137 restart=2

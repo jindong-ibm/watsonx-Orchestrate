@@ -1,0 +1,15 @@
+2024-03-15T08:01:10.600Z INFO  [payment-svc] Received payment request transaction-id=TXN-20240315-001 amount=250.00 currency=USD
+2024-03-15T08:01:10.650Z INFO  [payment-svc] Validating card details transaction-id=TXN-20240315-001 card_last4=4242
+2024-03-15T08:01:11.200Z INFO  [payment-svc] Card validation passed transaction-id=TXN-20240315-001
+2024-03-15T08:01:11.250Z INFO  [payment-svc] Calling bank authorization API transaction-id=TXN-20240315-001 bank=CHASE
+2024-03-15T08:01:14.900Z WARN  [payment-svc] Bank API slow response transaction-id=TXN-20240315-001 elapsed_ms=3650
+2024-03-15T08:01:15.700Z ERROR [payment-svc] PaymentFailed bank declined transaction transaction-id=TXN-20240315-001 decline_code=51 reason="Insufficient funds"
+2024-03-15T08:01:15.750Z INFO  [payment-svc] Updating payment record to FAILED transaction-id=TXN-20240315-001
+2024-03-15T08:01:15.800Z INFO  [payment-svc] Sending failure notification to user transaction-id=TXN-20240315-001 user-id=USR-42
+2024-03-15T08:01:15.900Z INFO  [payment-svc] Payment request completed with error transaction-id=TXN-20240315-001 final_status=FAILED
+2024-03-15T08:01:20.200Z INFO  [payment-svc] Received payment request transaction-id=TXN-20240315-003 amount=75.00 currency=USD
+2024-03-15T08:01:20.250Z INFO  [payment-svc] Validating card details transaction-id=TXN-20240315-003 card_last4=1234
+2024-03-15T08:01:20.500Z INFO  [payment-svc] Card validation passed transaction-id=TXN-20240315-003
+2024-03-15T08:01:20.600Z INFO  [payment-svc] Calling bank authorization API transaction-id=TXN-20240315-003 bank=BOFA
+2024-03-15T08:01:21.100Z INFO  [payment-svc] Bank authorization approved transaction-id=TXN-20240315-003 auth_code=AUTH-9981
+2024-03-15T08:01:21.200Z INFO  [payment-svc] Payment record saved transaction-id=TXN-20240315-003 final_status=SUCCESS

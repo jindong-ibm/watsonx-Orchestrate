@@ -1,0 +1,15 @@
+2024-03-15T08:00:01.001Z INFO  [gateway] Service started on port 8080
+2024-03-15T08:00:05.123Z INFO  [gateway] Health check passed
+2024-03-15T08:01:10.456Z INFO  [gateway] Incoming request POST /api/payment transaction-id=TXN-20240315-001 user-id=USR-42
+2024-03-15T08:01:10.512Z INFO  [gateway] Request routed to payment-service transaction-id=TXN-20240315-001
+2024-03-15T08:01:11.001Z INFO  [gateway] Incoming request GET /api/orders transaction-id=TXN-20240315-002 user-id=USR-17
+2024-03-15T08:01:11.050Z INFO  [gateway] Request routed to order-service transaction-id=TXN-20240315-002
+2024-03-15T08:01:15.789Z WARN  [gateway] Slow response detected transaction-id=TXN-20240315-001 elapsed_ms=5277
+2024-03-15T08:01:16.001Z ERROR [gateway] PaymentFailed upstream error transaction-id=TXN-20240315-001 status=500 reason="Insufficient funds"
+2024-03-15T08:01:16.050Z INFO  [gateway] Response sent to client transaction-id=TXN-20240315-001 http_status=402
+2024-03-15T08:01:20.100Z INFO  [gateway] Incoming request POST /api/payment transaction-id=TXN-20240315-003 user-id=USR-42
+2024-03-15T08:01:20.150Z INFO  [gateway] Request routed to payment-service transaction-id=TXN-20240315-003
+2024-03-15T08:01:21.300Z INFO  [gateway] Response sent to client transaction-id=TXN-20240315-003 http_status=200
+2024-03-15T08:02:00.000Z INFO  [gateway] Incoming request DELETE /api/session transaction-id=TXN-20240315-004 user-id=USR-99
+2024-03-15T08:02:00.050Z INFO  [gateway] Session terminated transaction-id=TXN-20240315-004
+2024-03-15T08:05:00.000Z INFO  [gateway] Periodic stats: requests=4 errors=1 avg_latency_ms=312

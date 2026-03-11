@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>watsonx Orchestrate Health Check Summary</title>
+    <style>
+        table { border-collapse: collapse; width: 100%; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #4CAF50; color: white; }
+        .running { color: green; }
+        .pending { color: orange; }
+        .crashloop { color: red; }
+    </style>
+</head>
+<body>
+    <h1>watsonx Orchestrate Pod Status</h1>
+    <p>Generated: 2024-03-15 10:30:00 UTC</p>
+    
+    <h2>Pod Status Summary</h2>
+    <table>
+        <tr>
+            <th>Pod Name</th>
+            <th>Status</th>
+            <th>Restarts</th>
+            <th>Age</th>
+        </tr>
+        <tr>
+            <td>zen-core-api-7d8f9c5b6-xk2m9</td>
+            <td class="running">Running</td>
+            <td>0</td>
+            <td>5d</td>
+        </tr>
+        <tr>
+            <td>zen-watcher-5c9d8f7b4-p3q1r</td>
+            <td class="crashloop">CrashLoopBackOff</td>
+            <td>15</td>
+            <td>2h</td>
+        </tr>
+        <tr>
+            <td>zen-metastore-edb-1</td>
+            <td class="running">Running</td>
+            <td>0</td>
+            <td>5d</td>
+        </tr>
+        <tr>
+            <td>usermgmt-6c8d9f7b5-k4m2n</td>
+            <td class="running">Running</td>
+            <td>0</td>
+            <td>5d</td>
+        </tr>
+        <tr>
+            <td>assistant-gateway-7f9c8d6b5-r5s3t</td>
+            <td class="pending">Pending</td>
+            <td>0</td>
+            <td>10m</td>
+        </tr>
+        <tr>
+            <td>assistant-skill-conversation-8g0d9e7c6-t6u4v</td>
+            <td class="running">Running</td>
+            <td>1</td>
+            <td>4d</td>
+        </tr>
+        <tr>
+            <td>assistant-skill-search-9h1e0f8d7-u7v5w</td>
+            <td class="running">Running</td>
+            <td>0</td>
+            <td>5d</td>
+        </tr>
+        <tr>
+            <td>orchestrate-api-0i2f1g9e8-v8w6x</td>
+            <td class="running">Running</td>
+            <td>0</td>
+            <td>5d</td>
+        </tr>
+        <tr>
+            <td>orchestrate-ui-1j3g2h0f9-w9x7y</td>
+            <td class="running">Running</td>
+            <td>0</td>
+            <td>5d</td>
+        </tr>
+        <tr>
+            <td>redis-ha-server-0</td>
+            <td class="running">Running</td>
+            <td>0</td>
+            <td>5d</td>
+        </tr>
+    </table>
+    
+    <h2>Summary</h2>
+    <ul>
+        <li>Total Pods: 10</li>
+        <li>Running: 8</li>
+        <li>Pending: 1</li>
+        <li>CrashLoopBackOff: 1</li>
+        <li>Failed: 0</li>
+    </ul>
+    
+    <h2>Issues Detected</h2>
+    <div class="issue">
+        <h3>zen-watcher-5c9d8f7b4-p3q1r</h3>
+        <p>Status: CrashLoopBackOff</p>
+        <p>This pod has restarted 15 times in the last 2 hours. Check logs for OutOfMemory or application errors.</p>
+    </div>
+    
+    <div class="issue">
+        <h3>assistant-gateway-7f9c8d6b5-r5s3t</h3>
+        <p>Status: Pending</p>
+        <p>This pod has been pending for 10 minutes. May be waiting for resources or image pull.</p>
+    </div>
+</body>
+</html>
