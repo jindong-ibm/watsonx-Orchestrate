@@ -4,6 +4,7 @@ import time
 import copy
 import uuid
 
+@dataclass
 class MemoryRecord:
     id: str
     content: Any
