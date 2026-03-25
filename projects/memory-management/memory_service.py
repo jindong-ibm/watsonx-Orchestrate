@@ -1,4 +1,3 @@
-
 import hashlib
 import uuid
 import time
@@ -134,3 +133,121 @@ class MemoryService:
             scope: len(self.memory[scope])
             for scope in self.memory
         }
+        
+def main() -> None:
+
+    memory = MemoryService()
+
+    # Agent Context Window
+    memory.write(
+        agent_id="agent-1",
+        content="User prefers concise answers",
+        scope="short",
+        source="human",
+        intent="preference"
+    )
+
+    memory.write(
+        agent_id="agent-1",
+        content="Explaining memory architecture",
+        scope="short",
+        source="agent",
+        intent="current_task"
+    )
+
+    context = memory.read(
+        agent_id="agent-1",
+        scope="short",
+        max_items=3
+    )
+
+    for r in context:
+        print(r.content)
+
+    # Task‑Scoped Reasoning
+    memory.write(
+        agent_id="agent-1",
+        content="Budget capped at $10k",
+        scope="task",
+        task_id="task-42",
+        source="human",
+        intent="constraint"
+    )
+
+    memory.write(
+        agent_id="agent-1",
+        content="Chose vendor A due to compliance",
+        scope="task",
+        task_id="task-42",
+        source="agent",
+        intent="decision"
+    )
+
+    memory.clear_task_scope(task_id="task-42")
+
+    # Semantic Watermark (Decay)
+    memory.decay(rate=0.3)
+    print(memory.stats())
+
+    # Checkpoint & Replay
+    memory.checkpoint()
+
+    memory.write(
+        agent_id="agent-1",
+        content="Potential hallucinated fact",
+        scope="long",
+        source="agent",
+        confidence=0.2
+    )
+
+    # Roll back after detection
+    memory.rollback()
+
+    # Shared Task Memory
+    memory.write(
+        agent_id="planner",
+        content="Use vendor A due to compliance",
+        scope="task",
+        visibility="task",
+        task_id="task-99",
+        source="agent",
+        intent="plan"
+    )
+    
+    executor_context = memory.read(
+        agent_id="executor",
+        scope="task",
+        task_id="task-99"
+    )
+
+    for r in executor_context:
+        print(r.content)
+
+    # Exactly‑Once Tool Call During Replay
+    def provision_resource(input):
+        print("PROVISIONING RESOURCE")
+        return {"status": "created"}
+
+    result1 = memory.execute_tool_exactly_once(
+        "provision",
+        {"size": "large"},
+        provision_resource
+    )
+
+    result2 = memory.execute_tool_exactly_once(
+        "provision",
+        {"size": "large"},
+        provision_resource
+    )
+
+    # "PROVISIONING RESOURCE" printed only once
+
+    memory.checkpoints.append(
+        copy.deepcopy((memory.memory, memory.tool_executions))
+    )
+
+    # Rollback
+    memory.memory, memory.tool_executions = memory.checkpoints.pop()
+
+if __name__ == "__main__":
+    main()
