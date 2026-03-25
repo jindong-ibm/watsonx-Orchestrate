@@ -19,9 +19,6 @@ class MemoryService:
         self.checkpoints = []
         self.tool_executions = {}
 
-    # ------------------------------
-    # WRITE PATH
-    # ------------------------------
     def write(
         self,
         agent_id: str,
@@ -33,6 +30,7 @@ class MemoryService:
         intent: str | None = None,
         confidence: float = 1.0
     ):
+        
         record = MemoryRecord(
             id=str(uuid.uuid4()),
             content=content,
@@ -47,9 +45,6 @@ class MemoryService:
         )
         self.memory[scope].append(record)
 
-    # ------------------------------
-    # READ PATH (Intent + Scope aware)
-    # ------------------------------
     def read(
         self,
         agent_id: str,
@@ -80,9 +75,6 @@ class MemoryService:
 
         return records[:max_items]
 
-    # ------------------------------
-    # DECAY / WATERMARK LOGIC
-    # ------------------------------
     def execute_tool_exactly_once(self, tool_name, tool_input, tool_fn):
         """
         tool_fn is a callable that executes the real tool.
@@ -109,9 +101,6 @@ class MemoryService:
 
         return result
     
-    # ------------------------------
-    # DECAY / WATERMARK LOGIC
-    # ------------------------------
     def decay(self, rate: float = 0.1):
         """
         Apply semantic decay globally.
@@ -125,18 +114,12 @@ class MemoryService:
                     retained.append(r)
             self.memory[scope] = retained
 
-    # ------------------------------
-    # TASK COMPLETION CLEANUP
-    # ------------------------------
     def clear_task_scope(self, task_id: str):
         self.memory["task"] = [
             r for r in self.memory["task"]
             if r.task_id != task_id
         ]
 
-    # ------------------------------
-    # CHECKPOINT / ROLLBACK
-    # ------------------------------
     def checkpoint(self):
         snapshot = copy.deepcopy(self.memory)
         self.checkpoints.append(snapshot)
@@ -146,9 +129,6 @@ class MemoryService:
             raise RuntimeError("No checkpoint available")
         self.memory = self.checkpoints.pop()
 
-    # ------------------------------
-    # OBSERVABILITY (Simplified)
-    # ------------------------------
     def stats(self) -> Dict[str, int]:
         return {
             scope: len(self.memory[scope])
