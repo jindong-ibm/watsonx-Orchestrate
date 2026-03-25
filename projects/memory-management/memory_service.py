@@ -1,4 +1,8 @@
 
+import hashlib
+import uuid
+import time
+import copy
 
 class MemoryService:
     """
@@ -13,25 +17,27 @@ class MemoryService:
             "long": []
         }
         self.checkpoints = []
+        self.tool_executions = {}
 
     # ------------------------------
     # WRITE PATH
     # ------------------------------
-
     def write(
         self,
         agent_id: str,
-        content: Any,
+        content,
         scope: str,
+        visibility: str,
         source: str,
-        task_id: Optional[str] = None,
-        intent: Optional[str] = None,
+        task_id: str | None = None,
+        intent: str | None = None,
         confidence: float = 1.0
     ):
         record = MemoryRecord(
             id=str(uuid.uuid4()),
             content=content,
             scope=scope,
+            visibility=visibility,
             agent_id=agent_id,
             task_id=task_id,
             source=source,
@@ -44,20 +50,27 @@ class MemoryService:
     # ------------------------------
     # READ PATH (Intent + Scope aware)
     # ------------------------------
-
     def read(
         self,
         agent_id: str,
         scope: str,
+        task_id: Optional[str] = None,
         intent: Optional[str] = None,
         max_items: int = 5
     ) -> List[MemoryRecord]:
 
-        records = [
-            r for r in self.memory[scope]
-            if r.agent_id == agent_id
-            and (intent is None or r.intent == intent)
-        ]
+        records = []
+        
+        for r in self.memory[scope]:
+            if (intent is None or r.intent == intent):
+                if r.visibility == "global":
+                    records.append(r)
+                elif r.visibility == "session" and r.agent_id == agent_id:
+                    records.append(r)
+                elif r.visibility == "task" and r.task_id == task_id:
+                    records.append(r)
+                elif r.visibility == "private" and r.agent_id == agent_id:
+                    records.append(r)
 
         # Sort by importance proxy: confidence + recency
         records.sort(
@@ -70,7 +83,35 @@ class MemoryService:
     # ------------------------------
     # DECAY / WATERMARK LOGIC
     # ------------------------------
+    def execute_tool_exactly_once(self, tool_name, tool_input, tool_fn):
+        """
+        tool_fn is a callable that executes the real tool.
+        """
 
+        input_hash = hashlib.sha256(
+            str(tool_input).encode()
+        ).hexdigest()
+
+        key = f"{tool_name}:{input_hash}"
+
+        if key in self.tool_executions:
+            return self.tool_executions[key].result
+
+        # Execute tool
+        result = tool_fn(tool_input)
+
+        self.tool_executions[key] = ToolExecutionRecord(
+            tool_name=tool_name,
+            tool_input_hash=input_hash,
+            result=result,
+            executed_at=time.time()
+        )
+
+        return result
+    
+    # ------------------------------
+    # DECAY / WATERMARK LOGIC
+    # ------------------------------
     def decay(self, rate: float = 0.1):
         """
         Apply semantic decay globally.
@@ -87,7 +128,6 @@ class MemoryService:
     # ------------------------------
     # TASK COMPLETION CLEANUP
     # ------------------------------
-
     def clear_task_scope(self, task_id: str):
         self.memory["task"] = [
             r for r in self.memory["task"]
@@ -97,7 +137,6 @@ class MemoryService:
     # ------------------------------
     # CHECKPOINT / ROLLBACK
     # ------------------------------
-
     def checkpoint(self):
         snapshot = copy.deepcopy(self.memory)
         self.checkpoints.append(snapshot)
@@ -110,7 +149,6 @@ class MemoryService:
     # ------------------------------
     # OBSERVABILITY (Simplified)
     # ------------------------------
-
     def stats(self) -> Dict[str, int]:
         return {
             scope: len(self.memory[scope])
