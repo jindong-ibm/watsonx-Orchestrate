@@ -6,16 +6,23 @@ import uuid
 
 @dataclass
 class MemoryRecord:
-    id: str
-    content: Any
-    scope: str                  # short | task | session | long
-    visibility: str             # private | task | session | global
+    id: str                     # UUID
+    content: Any                # Can include type and payload, etc. Product impl need a structure.
+
+    # metadata
     agent_id: str
+    sessionId: Optional[str]
     task_id: Optional[str]
     source: str                 # human | agent | tool | external
-    intent: Optional[str]
     confidence: float
     created_at: float
+    
+    # semantics, also define importance, decayPolicy, etc. if need
+    intent: Optional[str]
+    
+    # scope
+    scope: str                  # short | task | session | long
+    visibility: str             # private | task | session | global
 
 @dataclass
 class ToolExecutionRecord:
