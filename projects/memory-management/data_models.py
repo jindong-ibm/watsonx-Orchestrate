@@ -21,8 +21,8 @@ class MemoryRecord:
     intent: Optional[str]
     
     # scope
-    scope: str                  # short | task | session | long
-    visibility: str             # private | task | session | global
+    scope: str                  # for windowing: short (prompt context, turn) | task | session | long
+    visibility: str             # for multi-agent memory sharing: private | task | session | global
 
 @dataclass
 class ToolExecutionRecord:
