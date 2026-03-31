@@ -357,23 +357,4 @@ Potential improvements:
 For issues or questions:
 1. Check the [watsonx Orchestrate documentation](https://developer.watson-orchestrate.ibm.com/)
 2. Review the [ADK GitHub repository](https://github.com/IBM/ibm-watsonx-orchestrate-adk)
-3. Open an issue in your project repository
-4. Contact IBM Support for production issues
-
-## License
-
-This project follows the same license as the IBM watsonx Orchestrate ADK.
-
-## Contributing
-
-Contributions are welcome! Please:
-1. Follow the watsonx Orchestrate ADK coding standards
-2. Add tests for new features
-3. Update documentation
-4. Submit pull requests with clear descriptions
-
----
-
-**Version**: 1.0.0  
-**Last Updated**: 2026-03-05  
-**Author**: IBM watsonx Orchestrate Team
+3. Contact IBM Support for production issues
