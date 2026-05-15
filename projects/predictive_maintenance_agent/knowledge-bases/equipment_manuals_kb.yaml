@@ -1,0 +1,65 @@
+# Equipment Manuals Knowledge Base
+# 
+# This knowledge base contains equipment manuals, maintenance procedures,
+# operational guides, and troubleshooting documentation for manufacturing equipment.
+#
+# To populate this knowledge base:
+# 1. Place your PDF/DOCX/TXT documents in the knowledge-bases/docs/ directory
+# 2. Update the documents list below with the correct file paths
+# 3. Run: orchestrate knowledge-bases import -f knowledge-bases/equipment_manuals_kb.yaml
+#
+# Supported file formats: .pdf, .docx, .pptx, .xlsx, .csv, .html, .txt
+# Max file size: 25MB for PDF/DOCX/PPTX/XLSX, 5MB for CSV/HTML/TXT
+# Max batch: 20 files, 30MB total
+
+spec_version: v1
+kind: knowledge_base
+name: equipment_manuals_kb
+description: |
+  Comprehensive knowledge base containing equipment operation manuals, maintenance
+  procedures, troubleshooting guides, safety protocols, and operational specifications
+  for manufacturing equipment including pumps, compressors, motors, conveyors, and turbines.
+  
+  Use this knowledge base to answer questions about:
+  - Equipment operating parameters and specifications
+  - Recommended maintenance intervals and procedures
+  - Troubleshooting steps for common failure modes
+  - Safety protocols and lockout/tagout procedures
+  - Spare parts specifications and replacement guidelines
+  - Calibration and alignment procedures
+
+documents:
+  # Equipment Operation Manuals
+  - path: docs/centrifugal_pump_manual.pdf
+  - path: docs/air_compressor_manual.pdf
+  - path: docs/electric_motor_manual.pdf
+  - path: docs/conveyor_belt_manual.pdf
+  - path: docs/turbine_operation_manual.pdf
+
+  # Maintenance Procedures
+  - path: docs/pump_maintenance_procedures.pdf
+  - path: docs/bearing_replacement_guide.pdf
+  - path: docs/seal_replacement_procedures.pdf
+  - path: docs/lubrication_schedule.pdf
+  - path: docs/preventive_maintenance_checklist.pdf
+
+  # Troubleshooting Guides
+  - path: docs/vibration_analysis_guide.pdf
+  - path: docs/thermal_imaging_guide.pdf
+  - path: docs/failure_mode_analysis.pdf
+  - path: docs/root_cause_analysis_procedures.pdf
+
+  # Safety and Compliance
+  - path: docs/safety_protocols.pdf
+  - path: docs/lockout_tagout_procedures.pdf
+  - path: docs/hazardous_materials_guide.pdf
+
+  # Specifications
+  - path: docs/equipment_specifications.pdf
+  - path: docs/spare_parts_catalog.pdf
+  - path: docs/sensor_calibration_guide.pdf
+
+vector_index:
+  # Uses the default IBM embedding model: ibm/slate-125m-english-rtrvr-v2
+  # To use a custom embedding model, uncomment and set the model name:
+  # embeddings_model_name: virtual-model/openai/text-embedding-3-small
