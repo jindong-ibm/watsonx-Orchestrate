@@ -1,0 +1,11 @@
+# OpenShift Hot Patch Detector Requirements
+
+# Core dependencies
+python>=3.8
+PyYAML>=6.0
+
+# OpenShift/Kubernetes client (optional, uses oc CLI by default)
+kubernetes>=25.0.0
+
+# For enhanced reporting (optional)
+jinja2>=3.0.0
