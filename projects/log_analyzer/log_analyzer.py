@@ -619,7 +619,7 @@ def export_rca(findings: list, journey: list, output_path: str) -> None:
     mode = "a" if os.path.exists(output_path) else "w"
     with open(output_path, mode, encoding="utf-8") as fh:
         fh.write("\n\n" + "=" * 80 + "\n")
-        fh.write("ROOT CAUSE ANALYSIS\n")
+        fh.write("SECTION 4: ROOT CAUSE ANALYSIS\n")
         fh.write("=" * 80 + "\n\n")
 
         if not findings:
