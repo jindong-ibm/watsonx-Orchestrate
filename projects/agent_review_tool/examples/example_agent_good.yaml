@@ -1,0 +1,40 @@
+name: Customer Support Agent
+description: Handles customer inquiries and support requests
+
+instructions: |
+  You are a customer support specialist. Help customers with:
+  - Order status inquiries
+  - Product information
+  - Basic troubleshooting
+  
+  Always be polite and professional. If you cannot resolve an issue,
+  escalate to a human agent.
+
+tools:
+  - name: get_order_status
+    description: Retrieve order status by order ID
+  
+  - name: search_products
+    description: Search product catalog
+  
+  - name: create_support_ticket
+    description: Create a support ticket for escalation
+
+error_handling:
+  retry_attempts: 3
+  fallback_message: "I apologize, but I'm having trouble processing your request. Let me connect you with a human agent."
+
+validation:
+  input_validation: true
+  output_validation: true
+
+max_iterations: 5
+max_tokens: 2000
+
+knowledge_bases:
+  - name: product_kb
+    structured: true
+    metadata: true
+    top_k: 5
+
+# Made with Bob
