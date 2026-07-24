@@ -1,0 +1,192 @@
+name: AI Agent Anti-Patterns Knowledge Base
+description: |
+  Comprehensive knowledge base of AI agent anti-patterns and best practices 
+  derived from production experience. Based on research by Allen Chan.
+
+documents:
+  - title: "Lesson 1: Don't Mistake Prompting for Control"
+    content: |
+      THE TRAP:
+      Teams often expect deterministic behavior from agents while designing prompts 
+      at the wrong extreme. Some overload a narrowly scoped agent with pages of 
+      instructions, constraints, and exceptions in an attempt to force reliable 
+      behavior. Others keep the prompt loose and underspecified, yet still expect 
+      the agent to behave in a tightly bounded way. Both approaches fail for the 
+      same reason: the model is still approximating instructions, not executing them.
+      
+      ANTI-PATTERNS:
+      - Monolithic Mega-Prompt: Trying to build all-purpose super-agents with 
+        500+ line instruction sets
+      - Lost in the Middle Effect: Retrieval accuracy drops to ~55% for information 
+        in the middle of long context
+      - Over-Specialization: Creating super fine-grained agents requiring multiple 
+        handoffs for one task
+      
+      WHAT WORKS BETTER:
+      - Right-size the agent and right-size the prompt
+      - Keep the agent focused on a clear job
+      - Give it a concise instruction set
+      - Constrain its action space through system design — not just wording
+      - If the system needs multiple capabilities, split them across specialized 
+        agents or workflows with explicit coordination
+      - If the behavior must stay within hard boundaries, enforce those boundaries 
+        in code, tools, and workflow logic
+      - Limit agent hierarchies to no more than 2 levels
+      - Scope agents by use case domain rather than individual operations
+      
+      THE INSIGHT:
+      The problem is not simply "super-agents." It is the belief that prompt tuning 
+      alone can create deterministic behavior. Too many instructions and too few 
+      instructions can both fail. Reliable systems come from calibrated agent scope 
+      plus architectural controls.
+    
+  - title: "Lesson 2: Stop Asking Prompts to Do the Job of Systems"
+    content: |
+      THE TRAP:
+      As soon as approvals, branching, retries, validations, or compliance rules 
+      are embedded in prompt text, the system becomes brittle because the model 
+      is approximating those rules instead of executing them.
+      
+      ANTI-PATTERNS:
+      - Agent-as-Business-Process Fallacy: Replacing structured business processes 
+        with agent reasoning
+      - Tool Soup: Tool selection degrades as catalogs grow; large tool definitions 
+        consume substantial context and increase cost
+      - Tool Data Overload: Large tool definitions consume substantial context and 
+        increase cost
+      
+      WHAT WORKS BETTER:
+      - Put deterministic logic where it belongs: in workflows, code, and tool contracts
+      - Use agents for judgment, ambiguity, and open-ended reasoning
+      - Use workflows for order, control, approvals, rollback, and enforcement
+      - Curate tool access aggressively
+      - The agent should see only the tools it actually needs, not a giant action 
+        catalog that increases confusion and mistakes
+      
+      THE INSIGHT:
+      If a step must happen, don't describe it in a prompt — enforce it in the system.
+    
+  - title: "Lesson 3: RAG Does Not Clean Up Bad Knowledge"
+    content: |
+      THE TRAP:
+      If the underlying knowledge is messy, outdated, duplicated, poorly chunked, 
+      or not structured for agent consumption, the agent just retrieves that mess 
+      faster and with more confidence.
+      
+      ANTI-PATTERNS:
+      - Assumed Trust in the Knowledge Source: Believing RAG will fix disorganized 
+        knowledge
+      - RAG Will Fix Disorganized Knowledge: RAG retrieves semantically similar text, 
+        not verified truth
+      - One-Size-Fits-All Chunking: Generic chunking strategy doesn't suit all 
+        content types
+      
+      WHAT WORKS BETTER:
+      - Curate knowledge before expecting agents to use it well
+      - Add structure, metadata, ownership, versioning, and clear content boundaries
+      - Use the right mechanism for the job:
+        * Semantic retrieval for contextual lookup
+        * Databases and APIs for structured facts and counting
+        * Targeted extraction for documents
+      - The goal is not to give the agent more information — it is to give the 
+        agent the right information in a usable form
+      
+      THE INSIGHT:
+      RAG does not fix knowledge problems — it amplifies them. Similar ≠ correct. 
+      Enterprise content is rarely clean — outdated policies, conflicting versions, 
+      stale information all get retrieved with equal confidence.
+    
+  - title: "Lesson 4: Demo Success Proves Almost Nothing"
+    content: |
+      THE TRAP:
+      A system that looks great in a curated demo can still fail badly when users 
+      are vague, contradictory, adversarial, or when tools misbehave. Testing only 
+      "good" cases is one of the main reasons agent systems collapse in production.
+      
+      ANTI-PATTERNS:
+      - Happy Path Engineering: Only testing ideal scenarios
+      - Demo-Grade Agent in Production: Research shows that without recovery training, 
+        agents achieve success rates below 50% — sometimes below 30% — when tools fail
+      
+      WHAT WORKS BETTER:
+      - Evaluate the system under the conditions that actually matter:
+        * Ambiguity and conflicting instructions
+        * Tool failures and recovery
+        * Multi-turn corrections
+        * Non-cooperative inputs
+        * Adversarial testing and red-teaming
+      - Measure whether the system can recover, stay bounded, and remain useful 
+        when things go wrong — not just whether it looks polished when everything 
+        goes right
+      
+      THE INSIGHT:
+      If it only works in the demo, it doesn't work. Personal testing covers <10% 
+      of the input space; 90% of production issues come from untested scenarios.
+    
+  - title: "Lesson 5: Latency Is an Architecture Problem, Not Just a Model Problem"
+    content: |
+      THE TRAP:
+      Long prompts, too many planning loops, too many handoffs, oversized tool 
+      payloads, and excessive retrieval all add delay before the user gets value. 
+      Worse, all that extra context often hurts quality as well as speed.
+      
+      ANTI-PATTERNS:
+      - Responsiveness Afterthought: Not treating latency as a design constraint
+      - Tool Data Overload: Each model call adds 200-2000ms latency; nested planning 
+        loops push latency beyond acceptable SLAs
+      - Firehose Effect: Tools returning megabytes of data when only kilobytes are 
+        needed create context window exhaustion and prefill latency
+      
+      WHAT WORKS BETTER:
+      - Treat responsiveness as a design constraint from day one
+      - Keep prompts lean
+      - Reduce unnecessary model calls
+      - Avoid nested planning when a direct path will do
+      - Filter tool outputs at the source
+      - Parallelize only where it genuinely helps
+      - Research shows 53% of mobile users abandon sites that take more than 3 
+        seconds to load
+      
+      THE INSIGHT:
+      If the agent is slow, chances are the design is bloated. Don't make the model 
+      read a novel just to answer a question.
+    
+  - title: "Lesson 6: Don't Use More Context to Compensate for Bad Design"
+    content: |
+      THE TRAP:
+      Oversized system prompts, huge tool definitions, verbose tool outputs, and 
+      large knowledge passages stuffed into context "just in case" all drive cost 
+      up fast. This gets even worse when knowledge sources are not curated for 
+      agents, because the system starts returning maximum context in the hope that 
+      somewhere inside it is the answer.
+      
+      ANTI-PATTERNS:
+      - Unbounded Execution Cost: Costs accumulate through oversized models, repeated 
+        retrieval, re-planning loops, and oversized tool catalogs whose schemas are 
+        sent repeatedly across turns
+      - Over-Retrieved Knowledge: Over-retrieved knowledge passages compound token 
+        costs because they are carried forward turn after turn
+      - Give the Model Everything: Not a strategy — it's an expensive way to hide 
+        poor knowledge design
+      
+      WHAT WORKS BETTER:
+      - Design for precision, not volume
+      - Curate knowledge so retrieval can return smaller, more targeted passages
+      - Filter data before it reaches the model
+      - Use the smallest useful context
+      - Use the smallest useful toolset
+      - Use the smallest useful model for the task
+      - More tokens do not mean more value; they often mean the system is 
+        compensating for weak structure upstream
+      
+      THE INSIGHT:
+      "Give the model everything" is not a strategy — it's an expensive way to 
+      hide poor knowledge design.
+
+metadata:
+  source: "AI Agent Anti-Patterns: Six Hard-Won Lessons from Production"
+  author: "Allen Chan"
+  version: "1.0.0"
+  last_updated: "2024-06-01"
+
+# Made with Bob
