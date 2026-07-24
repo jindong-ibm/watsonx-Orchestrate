@@ -1,0 +1,227 @@
+# ──────────────────────────────────────────────────────────────────────────────
+# cmmn_config.yaml
+# Structural configuration for the CMMN Insurance Claims case model.
+#
+# Owners : Engineering / Business Analysts
+# Change process : Pull request + peer review; no code deployment required
+#                  to add new tasks, adjust sentry conditions, or change
+#                  milestone sequences.
+#
+# CMMN key concepts modelled here:
+#   - Case          : An insurance claim as a top-level case instance
+#   - Stage         : A logical grouping of tasks (Assessment, Investigation, Decision)
+#   - Task          : A discrete unit of work, may be human or automated
+#   - Sentry         : Entry/exit criteria that guard task or stage activation
+#                      (onEntry = what must be true to start; onExit = what ends it)
+#   - Milestone     : A named checkpoint signalling meaningful progress
+#   - Discretionary : Tasks that a knowledge worker may optionally invoke
+# ──────────────────────────────────────────────────────────────────────────────
+
+# ── Case definition ────────────────────────────────────────────────────────────
+case:
+  id: insurance_claim_case
+  name: Insurance Claim Case
+  description: >
+    A CMMN case model for processing property and casualty insurance claims.
+    The sequence of tasks is not fixed — a case worker selects and activates
+    tasks based on incoming evidence, sentry conditions, and judgment.
+
+# ── Claim types ────────────────────────────────────────────────────────────────
+claim_types:
+  - id: AUTO
+    label: Automobile
+    max_days_to_resolve: 30
+    requires_field_inspection: false
+  - id: PROPERTY
+    label: Property / Home
+    max_days_to_resolve: 45
+    requires_field_inspection: true
+  - id: LIABILITY
+    label: General Liability
+    max_days_to_resolve: 60
+    requires_field_inspection: true
+  - id: MEDICAL
+    label: Medical / Health
+    max_days_to_resolve: 20
+    requires_field_inspection: false
+
+# ── Stages (CMMN Stage elements) ──────────────────────────────────────────────
+# A stage groups related tasks and has its own sentry guards.
+# order: integer rank determining the default progression sequence.
+stages:
+  - id: INTAKE
+    label: Claim Intake & Triage
+    order: 1
+    description: Register the claim, verify coverage, and classify severity.
+    auto_activate: true               # begins as soon as the case opens
+
+  - id: ASSESSMENT
+    label: Damage Assessment
+    order: 2
+    description: Evaluate the nature and extent of the claimed damage.
+    auto_activate: false
+
+  - id: INVESTIGATION
+    label: Fraud & Liability Investigation
+    order: 3
+    description: >
+      Discretionary stage — only activated when the claim shows fraud signals
+      or liability is disputed. A knowledge worker decides whether to open it.
+    auto_activate: false
+    discretionary: true
+
+  - id: DECISION
+    label: Settlement Decision
+    order: 4
+    description: Approve, deny, or negotiate the claim settlement.
+    auto_activate: false
+
+  - id: CLOSURE
+    label: Case Closure
+    order: 5
+    description: Finalise payment or denial, notify claimant, archive case.
+    auto_activate: false
+
+# ── Tasks per stage ────────────────────────────────────────────────────────────
+# type: HUMAN | AUTOMATED | DISCRETIONARY
+# sentry_in  : condition that must hold for the task to be available
+# sentry_out : condition that marks the task complete
+tasks:
+  - id: REGISTER_CLAIM
+    stage: INTAKE
+    label: Register Claim
+    type: AUTOMATED
+    order: 1
+    sentry_in: "always"
+    sentry_out: "claim_id assigned"
+    description: Assign a claim ID, timestamp, and create the case record.
+
+  - id: VERIFY_COVERAGE
+    stage: INTAKE
+    label: Verify Policy Coverage
+    type: AUTOMATED
+    order: 2
+    sentry_in: "REGISTER_CLAIM completed"
+    sentry_out: "coverage_status confirmed"
+    description: Check policy number, effective dates, and covered perils.
+
+  - id: TRIAGE_SEVERITY
+    stage: INTAKE
+    label: Triage Claim Severity
+    type: AUTOMATED
+    order: 3
+    sentry_in: "VERIFY_COVERAGE completed"
+    sentry_out: "severity_level assigned"
+    description: Classify the claim as LOW / MEDIUM / HIGH / CRITICAL severity.
+
+  - id: COLLECT_DOCUMENTS
+    stage: ASSESSMENT
+    label: Collect Supporting Documents
+    type: HUMAN
+    order: 1
+    sentry_in: "INTAKE stage completed"
+    sentry_out: "documents_received"
+    description: Request and receive photos, police reports, medical records, etc.
+
+  - id: ESTIMATE_DAMAGE
+    stage: ASSESSMENT
+    label: Estimate Damage Value
+    type: AUTOMATED
+    order: 2
+    sentry_in: "COLLECT_DOCUMENTS completed"
+    sentry_out: "damage_estimate_ready"
+    description: Calculate repair/replacement cost using reserve tables.
+
+  - id: FIELD_INSPECTION
+    stage: ASSESSMENT
+    label: Field Inspection
+    type: DISCRETIONARY
+    order: 3
+    sentry_in: "claim_type requires_field_inspection == true"
+    sentry_out: "inspection_report_received"
+    description: Optional on-site inspection; activated at case worker's discretion.
+
+  - id: FRAUD_SCREENING
+    stage: INVESTIGATION
+    label: Fraud Screening
+    type: AUTOMATED
+    order: 1
+    sentry_in: "INVESTIGATION stage opened"
+    sentry_out: "fraud_score_computed"
+    description: Run fraud-detection model against claim attributes.
+
+  - id: SIU_REFERRAL
+    stage: INVESTIGATION
+    label: SIU Referral
+    type: DISCRETIONARY
+    order: 2
+    sentry_in: "fraud_score >= 0.65"
+    sentry_out: "siu_decision_received"
+    description: Refer to Special Investigations Unit if fraud score is high.
+
+  - id: LIABILITY_REVIEW
+    stage: INVESTIGATION
+    label: Liability Review
+    type: HUMAN
+    order: 3
+    sentry_in: "INVESTIGATION stage opened"
+    sentry_out: "liability_determination_made"
+    description: Legal/adjuster review of fault and comparative negligence.
+
+  - id: RESERVE_APPROVAL
+    stage: DECISION
+    label: Reserve Approval
+    type: HUMAN
+    order: 1
+    sentry_in: "ASSESSMENT stage completed"
+    sentry_out: "reserve_approved"
+    description: Manager approves or adjusts the financial reserve for the claim.
+
+  - id: SETTLEMENT_OFFER
+    stage: DECISION
+    label: Generate Settlement Offer
+    type: AUTOMATED
+    order: 2
+    sentry_in: "RESERVE_APPROVAL completed"
+    sentry_out: "offer_generated"
+    description: Calculate and generate the settlement offer letter.
+
+  - id: NEGOTIATE_SETTLEMENT
+    stage: DECISION
+    label: Negotiate Settlement
+    type: DISCRETIONARY
+    order: 3
+    sentry_in: "claimant_counter_offered == true"
+    sentry_out: "settlement_agreed or claim_denied"
+    description: Optional negotiation task if claimant disputes the initial offer.
+
+  - id: CLOSE_CLAIM
+    stage: CLOSURE
+    label: Close Claim
+    type: AUTOMATED
+    order: 1
+    sentry_in: "DECISION stage completed"
+    sentry_out: "case_closed"
+    description: Finalise payment or denial, send notifications, archive case.
+
+# ── Milestones ────────────────────────────────────────────────────────────────
+# Named checkpoints that mark meaningful progress in the case.
+milestones:
+  - id: M1_CLAIM_REGISTERED
+    label: Claim Registered
+    triggered_by: "REGISTER_CLAIM completed"
+  - id: M2_COVERAGE_CONFIRMED
+    label: Coverage Confirmed
+    triggered_by: "VERIFY_COVERAGE completed"
+  - id: M3_ASSESSMENT_COMPLETE
+    label: Assessment Complete
+    triggered_by: "ESTIMATE_DAMAGE completed"
+  - id: M4_INVESTIGATION_COMPLETE
+    label: Investigation Complete
+    triggered_by: "INVESTIGATION stage completed or skipped"
+  - id: M5_DECISION_MADE
+    label: Decision Made
+    triggered_by: "SETTLEMENT_OFFER completed or claim_denied"
+  - id: M6_CASE_CLOSED
+    label: Case Closed
+    triggered_by: "CLOSE_CLAIM completed"

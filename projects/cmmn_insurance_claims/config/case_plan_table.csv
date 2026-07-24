@@ -1,0 +1,25 @@
+# ──────────────────────────────────────────────────────────────────────────────
+# case_plan_table.csv
+# Tuneable case-management parameters — SLA targets, escalation thresholds,
+# fraud score cutoffs, damage reserve limits.
+#
+# Owners : Claims Operations / Business Analysts
+# Change process : Edit in Excel, save as CSV, commit to Git.
+#                  No code deployment required.
+#
+# Columns:
+#   claim_type          — must match an id in cmmn_config.yaml claim_types
+#   severity_threshold_high     — estimated_damage above this → HIGH severity
+#   severity_threshold_critical — estimated_damage above this → CRITICAL
+#   fraud_score_flag    — fraud_score at or above this triggers SIU_REFERRAL
+#   auto_approve_limit  — damage_estimate at or below this → auto-approve (no human review)
+#   sla_warning_pct     — % of max_days_to_resolve at which an SLA warning fires
+#   sla_breach_pct      — % of max_days_to_resolve at which an SLA breach is raised
+#   reserve_multiplier  — damage_estimate × multiplier = initial financial reserve
+#   escalate_supervisor_on_override — true/false: supervisor alert if adjuster overrides auto decision
+# ──────────────────────────────────────────────────────────────────────────────
+claim_type,severity_threshold_high,severity_threshold_critical,fraud_score_flag,auto_approve_limit,sla_warning_pct,sla_breach_pct,reserve_multiplier,escalate_supervisor_on_override
+AUTO,5000,25000,0.65,1000,0.70,0.90,1.20,true
+PROPERTY,10000,100000,0.65,2000,0.70,0.90,1.30,true
+LIABILITY,20000,500000,0.55,0,0.65,0.85,1.50,true
+MEDICAL,2000,50000,0.60,500,0.75,0.95,1.10,true
