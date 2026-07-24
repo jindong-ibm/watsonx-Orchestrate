@@ -1,0 +1,25 @@
+# ──────────────────────────────────────────────────────────────────────────────
+# policy_table.csv
+# Tuneable MDP policy numbers — Q-values and reward weights.
+#
+# Owners : Clinical leads / operations managers
+# Change process : Edit in Excel or any spreadsheet tool, save as CSV,
+#                  commit to Git. No code deployment required.
+#
+# Columns:
+#   state_id               — must match an id in mdp_config.yaml states
+#   optimal_action_id      — must match an id in mdp_config.yaml actions
+#   q_value                — expected long-term reward for the optimal action (0–1)
+#   reward_transition_per_level  — reward/penalty per severity-level change
+#   reward_policy_adherence      — bonus when chosen action matches optimal action
+#   reward_over_treatment        — penalty for unnecessary escalation
+#   reward_under_treatment       — penalty for insufficiently aggressive action
+#   reward_timeliness_bonus      — bonus for completing check within window
+#   reward_timeliness_penalty    — penalty for a late check
+# ──────────────────────────────────────────────────────────────────────────────
+state_id,optimal_action_id,q_value,reward_transition_per_level,reward_policy_adherence,reward_over_treatment,reward_under_treatment,reward_timeliness_bonus,reward_timeliness_penalty
+S0_STABLE,CONTINUE_MONITORING,0.95,10,5,-8,-5,3,-3
+S1_MILD,INCREASE_MONITORING,0.78,10,5,-8,-5,3,-3
+S2_MODERATE,CLINICAL_REVIEW,0.55,10,5,-8,-5,3,-3
+S3_CRITICAL,IMMEDIATE_ESCALATION,0.20,10,5,-8,-5,3,-3
+S4_DETERIORATING,URGENT_INTERVENTION,0.35,10,5,-8,-5,3,-3

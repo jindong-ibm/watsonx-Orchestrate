@@ -1,0 +1,127 @@
+# ──────────────────────────────────────────────────────────────────────────────
+# mdp_config.yaml
+# Structural configuration for the MDP Patient Monitoring system.
+#
+# Owners : Engineering team
+# Change process : Pull request + peer review; changes trigger CI validation.
+#
+# This file defines:
+#   - Bellman hyperparameters (α, γ)
+#   - State space (id, label, severity rank, vital thresholds)
+#   - Action space (id, label, escalation level, next-check window)
+#
+# The tuneable Q-values and reward weights live in policy_table.csv
+# so clinical/operations owners can adjust them without a code deploy.
+# ──────────────────────────────────────────────────────────────────────────────
+
+# ── Bellman learning hyperparameters ──────────────────────────────────────────
+mdp:
+  learning_rate: 0.1      # α — conservative to avoid instability in production
+  discount_factor: 0.9    # γ — future rewards strongly valued
+
+# ── State space  S = {S0 … S4} ───────────────────────────────────────────────
+# severity: integer rank used for transition reward calculation (higher = worse)
+states:
+  - id: S0_STABLE
+    label: Stable
+    severity: 0
+    description: All vitals within normal range.
+
+  - id: S1_MILD
+    label: Mild Concern
+    severity: 1
+    description: One borderline vital detected.
+
+  - id: S2_MODERATE
+    label: Moderate Risk
+    severity: 2
+    description: Two or more borderline vitals, or one sub-critical abnormal vital.
+
+  - id: S3_CRITICAL
+    label: Critical
+    severity: 4
+    description: At least one life-threatening vital value detected.
+
+  - id: S4_DETERIORATING
+    label: Deteriorating
+    severity: 3
+    description: Patient state has worsened compared to the previous observation cycle.
+
+# ── Vital-sign thresholds ─────────────────────────────────────────────────────
+# Each vital has two bands:
+#   borderline : triggers S1_MILD when it is the only abnormal vital
+#   critical   : immediately triggers S3_CRITICAL regardless of other vitals
+vitals:
+  heart_rate:
+    unit: bpm
+    borderline_low: 60
+    borderline_high: 100
+    critical_low: 40
+    critical_high: 150
+
+  systolic_bp:
+    unit: mmHg
+    borderline_low: 90
+    borderline_high: 140
+    critical_low: 70
+    critical_high: 200
+
+  diastolic_bp:
+    unit: mmHg
+    borderline_low: 60
+    borderline_high: 90
+    critical_low: 40
+    critical_high: 120
+
+  spo2:
+    unit: percent
+    borderline_low: 95
+    borderline_high: 100      # no upper bound concern
+    critical_low: 90
+    critical_high: 100
+
+  temperature:
+    unit: celsius
+    borderline_low: 36.0
+    borderline_high: 38.0
+    critical_low: 35.0
+    critical_high: 40.0
+
+  respiratory_rate:
+    unit: breaths_per_min
+    borderline_low: 12
+    borderline_high: 20
+    critical_low: 8
+    critical_high: 30
+
+# ── Action space  A ───────────────────────────────────────────────────────────
+actions:
+  - id: CONTINUE_MONITORING
+    label: Continue monitoring
+    escalation_level: routine
+    next_check_minutes: 240
+    description: All vitals normal. Maintain standard 4-hour monitoring cycle.
+
+  - id: INCREASE_MONITORING
+    label: Increase monitoring frequency
+    escalation_level: nurse
+    next_check_minutes: 60
+    description: Switch to hourly checks and notify floor nurse.
+
+  - id: CLINICAL_REVIEW
+    label: Clinical review required
+    escalation_level: physician
+    next_check_minutes: 30
+    description: Attending physician review required within 30 minutes.
+
+  - id: IMMEDIATE_ESCALATION
+    label: Immediate escalation — rapid response
+    escalation_level: rapid_response
+    next_check_minutes: 5
+    description: Activate Rapid Response Team immediately. CODE alert.
+
+  - id: URGENT_INTERVENTION
+    label: Urgent intervention
+    escalation_level: attending
+    next_check_minutes: 15
+    description: Attending physician and medication review required within 15 minutes.
