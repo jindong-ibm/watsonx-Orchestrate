@@ -83,7 +83,7 @@ def analyze_agent_config(
     
     findings = []
 
-    # Analyze based on the 6 core lessons
+    # Analyze based on the 6 core lessons + guidelines health
     all_module_findings = [
         # (label, findings_list)
         ("Prompt Design",       _analyze_prompt_design(config)),
@@ -92,6 +92,7 @@ def analyze_agent_config(
         ("Testing Strategy",    _analyze_testing_strategy(config)),
         ("Performance Design",  _analyze_performance_design(config)),
         ("Context Usage",       _analyze_context_usage(config)),
+        ("Guidelines",          _analyze_guidelines(config)),
     ]
 
     for _label, module_findings in all_module_findings:
@@ -195,6 +196,16 @@ def _calculate_score(findings: List[Dict], config: Dict) -> int:
     tool_count = len(config.get("tools", []))
     if 3 <= tool_count <= 8:
         bonus = min(bonus + _BONUS_PER_SIGNAL, _MAX_BONUS)
+
+    # Bonus for well-authored guidelines (present, concise conditions, no tool-output matching)
+    guidelines = config.get("guidelines", [])
+    if isinstance(guidelines, list) and 0 < len(guidelines) <= 10:
+        avg_cond_len = (
+            sum(len(g.get("condition", "")) for g in guidelines if isinstance(g, dict))
+            / len(guidelines)
+        )
+        if avg_cond_len <= 120:
+            bonus = min(bonus + _BONUS_PER_SIGNAL, _MAX_BONUS)
 
     # Bonus for concise, non-empty instructions (100–1000 chars)
     prompt = _get_prompt(config)
@@ -560,6 +571,232 @@ def _analyze_context_usage(config: Dict) -> List[Dict]:
                 "issue": "Large tool definitions sent repeatedly across turns waste tokens",
                 "recommendation": "Costs accumulate through oversized models, repeated retrieval, re-planning loops, and oversized tool catalogs. Use the smallest useful toolset.",
                 "reference": "Lesson 6: Don't Use More Context to Compensate for Bad Design"
+            })
+
+    return findings
+
+
+# ---------------------------------------------------------------------------
+# Guidelines analysis
+# ---------------------------------------------------------------------------
+
+# Tokens that indicate a condition is matching on prior tool/agent output
+# rather than on the user's current intent.
+_OUTPUT_MATCH_TOKENS = [
+    '⚠️', 'confirmation required', 're-type', 'collaborator response',
+    'tool output', 'previous response', 'assistant said', 'agent said',
+    'the response contains', 'response includes',
+]
+
+# Tokens that indicate keyword-list / enumeration padding rather than
+# a concise semantic condition.
+_KEYWORD_LIST_TOKENS = ['keywords:', 'note:', 'includes:', 'matches:', 'e.g.,', 'e.g.:']
+
+
+def _analyze_guidelines(config: Dict) -> List[Dict]:
+    """Analyze the guidelines section for anti-patterns.
+
+    Checks:
+    1. Verbose / mega-condition — condition text is too long (>150 chars).
+    2. Keyword-list padding — condition enumerates keywords instead of
+       expressing user intent semantically.
+    3. Tool-output matching — condition checks for content in prior tool or
+       collaborator responses rather than on user intent; causes the classifier
+       to re-run after every tool call in the ReAct loop.
+    4. Too many guidelines — large lists inflate the classifier prompt that
+       WxO sends before every agent loop iteration.
+    5. Missing action or tool — a guideline with neither 'action' nor 'tool'
+       is a no-op and wastes a classifier slot.
+    6. Condition text duplicated in instructions — the same routing logic
+       appears in both the guidelines and the free-form instructions block,
+       so it is paid for twice per turn.
+    """
+    findings = []
+    guidelines = config.get("guidelines", [])
+
+    if not isinstance(guidelines, list) or len(guidelines) == 0:
+        return findings  # no guidelines configured — nothing to check
+
+    # ------------------------------------------------------------------ #
+    # Check 1 & 2: verbose conditions / keyword-list padding
+    # ------------------------------------------------------------------ #
+    verbose_ids = []
+    keyword_padded_ids = []
+
+    for g in guidelines:
+        if not isinstance(g, dict):
+            continue
+        name = g.get("display_name") or g.get("id") or "<unnamed>"
+        condition = g.get("condition", "")
+
+        if len(condition) > 150:
+            verbose_ids.append((name, len(condition)))
+
+        cond_lower = condition.lower()
+        if any(tok in cond_lower for tok in _KEYWORD_LIST_TOKENS):
+            keyword_padded_ids.append(name)
+
+    if verbose_ids:
+        details = "; ".join(f"'{n}' ({c} chars)" for n, c in verbose_ids)
+        findings.append({
+            "category": "Guidelines",
+            "severity": "high",
+            "anti_pattern": "Verbose Guideline Conditions",
+            "issue": (
+                f"{len(verbose_ids)} guideline condition(s) exceed 150 characters: {details}. "
+                "The WxO runtime sends ALL condition strings to the classifier LLM on every "
+                "turn — length directly drives token cost and prefill latency."
+            ),
+            "recommendation": (
+                "Shorten each condition to one sentence of user intent (target ≤100 chars). "
+                "Move keyword lists, NOTE clauses, and disambiguation text into the guideline's "
+                "'action' field or the agent's 'instructions' block — the classifier only needs "
+                "enough to match, not to route."
+            ),
+            "reference": "Guidelines Performance: ADK docs warn guidelines add an LLM call before every agent loop"
+        })
+
+    if keyword_padded_ids:
+        details = ", ".join(f"'{n}'" for n in keyword_padded_ids)
+        findings.append({
+            "category": "Guidelines",
+            "severity": "medium",
+            "anti_pattern": "Keyword-List Padding in Conditions",
+            "issue": (
+                f"Guideline condition(s) {details} use keyword enumerations or NOTE clauses "
+                "('Keywords:', 'NOTE:', 'e.g.,') inside the condition text. "
+                "This inflates the classifier prompt and turns semantic matching into "
+                "brittle keyword matching."
+            ),
+            "recommendation": (
+                "Express conditions as a single natural-language sentence describing user intent. "
+                "Example: 'The user asks to list or investigate jobs or job failures.' "
+                "Keyword lists and disambiguation notes belong in the 'action' field, not the condition."
+            ),
+            "reference": "Guidelines Performance: Condition text is re-sent to the classifier LLM on every turn"
+        })
+
+    # ------------------------------------------------------------------ #
+    # Check 3: tool-output / history matching
+    # ------------------------------------------------------------------ #
+    output_matching_ids = []
+    for g in guidelines:
+        if not isinstance(g, dict):
+            continue
+        name = g.get("display_name") or g.get("id") or "<unnamed>"
+        condition = g.get("condition", "").lower()
+        if any(tok in condition for tok in _OUTPUT_MATCH_TOKENS):
+            output_matching_ids.append(name)
+
+    if output_matching_ids:
+        details = ", ".join(f"'{n}'" for n in output_matching_ids)
+        findings.append({
+            "category": "Guidelines",
+            "severity": "high",
+            "anti_pattern": "Tool-Output Matching in Conditions",
+            "issue": (
+                f"Guideline condition(s) {details} match on prior tool/collaborator output "
+                "content (e.g., checking for '⚠️', 'Confirmation Required', or 'collaborator "
+                "response' in the history). The WxO classifier re-evaluates ALL guidelines "
+                "after each tool result is appended to the conversation — this causes the "
+                "classifier to fire extra times per turn, adding latency on every ReAct loop."
+            ),
+            "recommendation": (
+                "Conditions should match on the USER's current intent, not on prior tool output. "
+                "State-machine concerns (e.g., 'user is confirming a previously prompted command') "
+                "belong in the agent's 'instructions' block or in a dedicated confirmation-routing "
+                "tool — not in a guideline condition that is re-evaluated every loop iteration."
+            ),
+            "reference": "Guidelines Performance: Classifier re-runs after each tool call when conditions reference history content"
+        })
+
+    # ------------------------------------------------------------------ #
+    # Check 4: too many guidelines
+    # ------------------------------------------------------------------ #
+    if len(guidelines) > 10:
+        findings.append({
+            "category": "Guidelines",
+            "severity": "medium",
+            "anti_pattern": "Guideline Catalog Overload",
+            "issue": (
+                f"Agent has {len(guidelines)} guidelines. The WxO runtime sends all condition "
+                "strings to the classifier LLM before every agent loop iteration — a large "
+                "catalog inflates the classifier prompt on every turn."
+            ),
+            "recommendation": (
+                "Aim for ≤8 guidelines per agent. Consider whether some conditions should be "
+                "merged, moved into the agent's 'instructions', or handled by splitting into "
+                "specialised collaborator agents with their own smaller guideline sets."
+            ),
+            "reference": "ADK Performance Guide: Guidelines add an LLM call before the agent loop starts"
+        })
+
+    # ------------------------------------------------------------------ #
+    # Check 5: no-op guidelines (neither action nor tool)
+    # ------------------------------------------------------------------ #
+    noop_ids = []
+    for g in guidelines:
+        if not isinstance(g, dict):
+            continue
+        name = g.get("display_name") or g.get("id") or "<unnamed>"
+        has_action = bool(g.get("action", "").strip())
+        has_tool = bool(g.get("tool", "").strip())
+        if not has_action and not has_tool:
+            noop_ids.append(name)
+
+    if noop_ids:
+        details = ", ".join(f"'{n}'" for n in noop_ids)
+        findings.append({
+            "category": "Guidelines",
+            "severity": "medium",
+            "anti_pattern": "No-Op Guideline",
+            "issue": (
+                f"Guideline(s) {details} have neither an 'action' nor a 'tool' field. "
+                "They consume a classifier slot on every turn but trigger no behaviour when matched."
+            ),
+            "recommendation": (
+                "Every guideline must specify at least one of: 'action' (natural-language "
+                "instruction to follow) or 'tool' (tool name to invoke). Remove or complete "
+                "these no-op entries."
+            ),
+            "reference": "ADK build_agent: 'Provide at least one of action or tool'"
+        })
+
+    # ------------------------------------------------------------------ #
+    # Check 6: routing logic duplicated between guidelines and instructions
+    # ------------------------------------------------------------------ #
+    if _has_prompt(config) and guidelines:
+        prompt = _get_prompt(config).lower()
+        duplicated = []
+        for g in guidelines:
+            if not isinstance(g, dict):
+                continue
+            name = g.get("display_name") or g.get("id") or "<unnamed>"
+            condition = g.get("condition", "")
+            # Take the first 6 meaningful words of the condition as a fingerprint
+            words = [w for w in condition.lower().split() if len(w) > 3][:6]
+            if len(words) >= 3 and all(w in prompt for w in words):
+                duplicated.append(name)
+
+        if duplicated:
+            details = ", ".join(f"'{n}'" for n in duplicated)
+            findings.append({
+                "category": "Guidelines",
+                "severity": "low",
+                "anti_pattern": "Routing Logic Duplicated in Instructions",
+                "issue": (
+                    f"Guideline condition(s) {details} appear to be restated inside the "
+                    "agent's instructions block. This means the same routing logic is paid "
+                    "for twice per turn: once in the classifier call and once in the main "
+                    "agent loop prompt."
+                ),
+                "recommendation": (
+                    "Choose one place for each routing rule. Use guidelines for structured, "
+                    "rule-based routing (they get classifier pre-filtering). Use the instructions "
+                    "block for general reasoning guidance. Avoid copying condition text verbatim "
+                    "into both."
+                ),
+                "reference": "Guidelines Performance: Classifier output is re-injected into the main agent prompt"
             })
 
     return findings
