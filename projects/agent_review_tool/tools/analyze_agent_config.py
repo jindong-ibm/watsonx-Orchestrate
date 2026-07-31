@@ -83,15 +83,19 @@ def analyze_agent_config(
     
     findings = []
 
-    # Analyze based on the 6 core lessons + guidelines health
+    # Analyze based on all anti-pattern categories from Parts 1–6
     all_module_findings = [
         # (label, findings_list)
         ("Prompt Design",       _analyze_prompt_design(config)),
         ("System Design",       _analyze_system_design(config)),
+        ("Autonomy & Control",  _analyze_autonomy_control(config)),
         ("Knowledge Mgmt",      _analyze_knowledge_management(config)),
         ("Testing Strategy",    _analyze_testing_strategy(config)),
         ("Performance Design",  _analyze_performance_design(config)),
         ("Context Usage",       _analyze_context_usage(config)),
+        ("MCP & Tool Design",   _analyze_mcp_tool_design(config)),
+        ("Observability",       _analyze_observability(config)),
+        ("Model Selection",     _analyze_model_selection(config)),
         ("Guidelines",          _analyze_guidelines(config)),
     ]
 
@@ -576,6 +580,229 @@ def _analyze_context_usage(config: Dict) -> List[Dict]:
     return findings
 
 
+
+# ---------------------------------------------------------------------------
+# Autonomy & Control analysis (Part 1 AP-04, Part 5 AP-28/AP-29)
+# ---------------------------------------------------------------------------
+
+def _analyze_autonomy_control(config: Dict) -> List[Dict]:
+    """Detect all-or-nothing autonomy and natural-language workflow engine anti-patterns."""
+    findings = []
+
+    # AP-04: All-or-Nothing Autonomy — no autonomy controls at all
+    has_hitl = any(k in config for k in ('human_in_the_loop', 'hitl', 'approval', 'require_confirmation'))
+    has_autonomy_level = any(k in config for k in ('autonomy_level', 'autonomy', 'max_autonomy'))
+    has_guardrails = 'guardrails' in config
+
+    if not has_hitl and not has_autonomy_level and not has_guardrails:
+        findings.append({
+            "category": "Autonomy & Control",
+            "severity": "medium",
+            "anti_pattern": "All-or-Nothing Autonomy",
+            "issue": "No autonomy controls, approval gates, or HITL configuration found. Without risk-weighted autonomy controls, agents may act on high-stakes operations without oversight.",
+            "recommendation": "Make autonomy intentional and risk-weighted: autonomous for low-risk reads, notify for medium-risk writes, require explicit confirmation for high-risk/destructive operations. Add guardrails and consider HITL for high-stakes workflow steps.",
+            "reference": "AP-04: All-or-Nothing Autonomy (Part 1 — Architectural Pitfalls)"
+        })
+
+    # AP-28/AP-29: Natural Language Workflow Engine — business process logic in instructions
+    if _has_prompt(config):
+        prompt = _get_prompt(config)
+        workflow_keywords = [
+            'step 1', 'step 2', 'step 3', 'first,', 'then,', 'finally,',
+            'in order', 'sequentially', 'approval', 'compliance', 'audit trail',
+            'rollback', 'retry', 'escalate', 'on failure'
+        ]
+        workflow_hits = sum(1 for kw in workflow_keywords if kw in prompt.lower())
+        if workflow_hits >= 4:
+            findings.append({
+                "category": "Autonomy & Control",
+                "severity": "critical",
+                "anti_pattern": "Natural Language Workflow Engine",
+                "issue": f"Instructions contain {workflow_hits} workflow-engine keywords (step sequences, approval/compliance/retry logic), suggesting business process logic encoded in the prompt.",
+                "recommendation": "Prompts approximate workflow steps — they do not execute them reliably. IFBench shows best frontier models fail 17–38% of even simple instruction-following tasks. Move approval gates, compliance rules, retry logic, and ordered sequences to a workflow engine (watsonx Orchestrate Agentic Workflow, IBM BAW). The agent should be a participant in a workflow, not the workflow itself.",
+                "reference": "AP-28: Natural Language Workflow Engine (Part 5 — The Illusion of Control)"
+            })
+
+    # AP-05: Passing verbatim-required content through model
+    if _has_prompt(config):
+        prompt = _get_prompt(config)
+        verbatim_keywords = [
+            'verbatim', 'exact text', 'do not change', 'word for word',
+            'legal disclaimer', 'disclosure', 'regulatory text', 'compliance text',
+            'copy exactly', 'reproduce exactly'
+        ]
+        verbatim_hits = sum(1 for kw in verbatim_keywords if kw in prompt.lower())
+        if verbatim_hits >= 2:
+            findings.append({
+                "category": "Autonomy & Control",
+                "severity": "high",
+                "anti_pattern": "Verbatim Content Routed Through LLM",
+                "issue": "Instructions attempt to make the agent reproduce exact/verbatim content. LLMs paraphrase and rewrite — even strict instructions cannot prevent subtle alterations of mandated text.",
+                "recommendation": "Route verbatim-required content (legal disclaimers, regulatory text) around the LLM, not through it: use tools that generate PDFs or push directly to regulated channels, HITL workflow blocks that surface exact content, or MCP audience annotations marking responses as pass-through for the end user.",
+                "reference": "AP-05: Passing As-Is Content Through the Model (Part 1 — Architectural Pitfalls)"
+            })
+
+    return findings
+
+
+# ---------------------------------------------------------------------------
+# MCP & Tool Design analysis (Part 4 AP-20–27)
+# ---------------------------------------------------------------------------
+
+def _analyze_mcp_tool_design(config: Dict) -> List[Dict]:
+    """Detect MCP and tool design anti-patterns from Part 4."""
+    findings = []
+
+    tools = config.get('tools', [])
+    if not tools:
+        return findings  # nothing to check without tool definitions
+
+    # AP-20/AP-21: Glorified API Wrapper / Raw Schema Leakage
+    # Tools named with HTTP verb prefixes or raw query/schema parameters suggest API exposure
+    api_wrapper_indicators = ['odata_', 'rest_', 'http_', 'query_raw', 'execute_sql',
+                              'execute_query', 'execute_request', 'raw_request', 'api_call']
+    api_wrapper_tools = []
+    for t in tools:
+        tool_name = t if isinstance(t, str) else (t.get('name', '') if isinstance(t, dict) else '')
+        if any(tool_name.lower().startswith(ind) or tool_name.lower() == ind.rstrip('_')
+               for ind in api_wrapper_indicators):
+            api_wrapper_tools.append(tool_name)
+
+    if api_wrapper_tools:
+        findings.append({
+            "category": "MCP & Tool Design",
+            "severity": "high",
+            "anti_pattern": "MCP as a Glorified API Wrapper",
+            "issue": f"Tool(s) detected with raw API naming patterns: {api_wrapper_tools}. These expose API primitives instead of business capabilities, forcing the agent to act as an API client.",
+            "recommendation": "Apply the Agent-Ready Tool Facade Pattern: wrap raw API operations behind intent-driven business capabilities. Replace odata_create(entity_set, payload) with create_purchase_order(vendor_id, items, delivery_date). Good tools reduce the burden on the model; bad tools amplify it.",
+            "reference": "AP-20: MCP as a Glorified API Wrapper (Part 4 — MCP Tools & Integration)"
+        })
+
+    # AP-23: God-Mode Tool — look for overpowered tool names
+    god_mode_indicators = ['execute_sql', 'execute_query', 'execute_command', 'run_script',
+                           'eval_', 'exec_', 'kubectl_', 'delete_all', 'drop_', 'truncate_',
+                           'admin_', 'superuser_', 'unrestricted_']
+    god_mode_tools = []
+    for t in tools:
+        tool_name = t if isinstance(t, str) else (t.get('name', '') if isinstance(t, dict) else '')
+        if any(ind in tool_name.lower() for ind in god_mode_indicators):
+            god_mode_tools.append(tool_name)
+
+    if god_mode_tools:
+        findings.append({
+            "category": "MCP & Tool Design",
+            "severity": "critical",
+            "anti_pattern": "God-Mode Tool (Overpowered Tool)",
+            "issue": f"Tool(s) with broad/unrestricted execution capability detected: {god_mode_tools}. These turn agents into security vulnerabilities with no input validation or domain constraints.",
+            "recommendation": "Apply least privilege: read-only by default, explicit enable flags for destructive operations, input validation inside the tool, and audit logging for all write operations.",
+            "reference": "AP-23: God-Mode MCP Tool (Part 4 — MCP Tools & Integration)"
+        })
+
+    # AP-25: Kitchen Sink Server — very large tool count signals bundled MCP servers
+    if len(tools) > 20:
+        findings.append({
+            "category": "MCP & Tool Design",
+            "severity": "high",
+            "anti_pattern": "Kitchen Sink Server",
+            "issue": f"Agent has access to {len(tools)} tools. With 50+ MCP tools, definitions consume ~72K tokens upfront (60% of a 128K context window). A 4-turn conversation can burn 288K tokens on tool definitions alone.",
+            "recommendation": "Scope tool catalogs by user role, task domain, and permissions. For production agents, build a business capability layer on top of generic MCP servers. Separate agents with focused tool sets serve different use cases better than one mega-catalog.",
+            "reference": "AP-25: Kitchen Sink MCP Server (Part 4 — MCP Tools & Integration)"
+        })
+
+    # AP-22: Wishful Delegation — agent instructions reference complex multi-step tool usage
+    if _has_prompt(config):
+        prompt = _get_prompt(config)
+        delegation_keywords = ['discover', 'fetch metadata', 'determine the schema',
+                               'find the entity', 'construct the payload', 'look up the id first']
+        delegation_hits = sum(1 for kw in delegation_keywords if kw in prompt.lower())
+        if delegation_hits >= 2:
+            findings.append({
+                "category": "MCP & Tool Design",
+                "severity": "medium",
+                "anti_pattern": "Wishful Delegation",
+                "issue": "Instructions require multi-step reasoning chains (discover schema → construct payload → execute) before tools can be used, pushing system design responsibility onto the LLM.",
+                "recommendation": "Encode multi-step complexity inside the tool implementation. The agent should call create_purchase_order(vendor_id, items), not chain: discover_services → fetch_metadata → build_payload → execute_odata.",
+                "reference": "AP-22: Wishful Delegation to MCP Tools (Part 4 — MCP Tools & Integration)"
+            })
+
+    return findings
+
+
+# ---------------------------------------------------------------------------
+# Observability analysis (Part 2 AP-10)
+# ---------------------------------------------------------------------------
+
+def _analyze_observability(config: Dict) -> List[Dict]:
+    """Detect missing observability and tracing configuration."""
+    findings = []
+
+    has_observability = any(k in config for k in (
+        'logging', 'tracing', 'observability', 'monitoring', 'telemetry',
+        'audit', 'audit_log', 'traces'
+    ))
+
+    # Check for references to external/MCP tools — these need observability most
+    has_external_tools = False
+    tools = config.get('tools', [])
+    mcp_indicators = ['mcp', 'external', 'third_party', 'integration', 'connector']
+    for t in tools:
+        tool_name = t if isinstance(t, str) else (t.get('name', '') if isinstance(t, dict) else '')
+        if any(ind in tool_name.lower() for ind in mcp_indicators):
+            has_external_tools = True
+            break
+
+    if not has_observability and (len(tools) > 3 or has_external_tools):
+        findings.append({
+            "category": "Observability",
+            "severity": "medium",
+            "anti_pattern": "Blind Trust in External Components (No Observability)",
+            "issue": "No logging, tracing, or observability configuration found. Without instrumentation, when failures occur (bad outputs, latency spikes, cost surges) you cannot answer: What happened? Why? How to fix?",
+            "recommendation": "Add an instrumentation layer that captures inputs, outputs, latency, and errors for every tool call. OWASP Top 10 for Agentic Applications 2026 (ASI02, ASI04) identifies unobserved tool usage as a primary attack surface. Treat external MCP servers as untrusted until verified.",
+            "reference": "AP-10: Blind Trust in External Components (Part 2 — Tooling, Observability, Scale)"
+        })
+
+    return findings
+
+
+# ---------------------------------------------------------------------------
+# Model Selection analysis (Part 6 AP-30, AP-33)
+# ---------------------------------------------------------------------------
+
+def _analyze_model_selection(config: Dict) -> List[Dict]:
+    """Detect model selection anti-patterns from Part 6."""
+    findings = []
+
+    # AP-33: Context Length Capacity Fallacy
+    max_tokens = config.get('max_tokens', config.get('context_window', config.get('context_length', 0)))
+    if isinstance(max_tokens, int) and max_tokens >= 100000:
+        findings.append({
+            "category": "Model Selection",
+            "severity": "medium",
+            "anti_pattern": "Context Length Capacity Fallacy",
+            "issue": f"Context window set to {max_tokens:,} tokens. A large context window is NOT equivalent to reliable working memory. AI-Needle benchmark (July 2026): best frontier model (Claude Opus 4.5) achieves only 74% accuracy at deep context retrieval — failing more than 1-in-4 times on the simplest long-context task.",
+            "recommendation": "Context window size is a hard ceiling on input length, not a measure of reliable working memory. Position critical instructions (current task, active tool schemas) early in context. Use retrieval to bring relevant content into a shorter, well-structured context rather than stuffing everything in. Evaluate long-context behavior on your actual task structure.",
+            "reference": "AP-33: Context Length Capacity Fallacy (Part 6 — Model Selection)"
+        })
+
+    # AP-30: Benchmark-Only Model Selection — detect if a specific model is hard-coded
+    model = config.get('model', config.get('llm', config.get('model_id', '')))
+    if isinstance(model, str) and model:
+        # Check if the model selection appears to be purely name-based without operational notes
+        # We can only flag this if it's combined with other signals (e.g., very large context)
+        if max_tokens and isinstance(max_tokens, int) and max_tokens >= 200000:
+            findings.append({
+                "category": "Model Selection",
+                "severity": "low",
+                "anti_pattern": "Benchmark-Only Model Selection Risk",
+                "issue": f"Model '{model}' is configured with a very large context window ({max_tokens:,} tokens). Verify this is intentional and that the model has been evaluated on your actual production workload — not just leaderboard benchmarks.",
+                "recommendation": "Evaluate models on the dimensions your system actually requires: latency, cost, tool-calling accuracy, structured output fidelity, context length, and deployment constraints. The era where 'just use the best model' was a safe architectural decision is over — the performance gap between frontier models has almost closed, but cost and latency differences remain enormous.",
+                "reference": "AP-30: Benchmark-Only Model Selection (Part 6 — Model Selection)"
+            })
+
+    return findings
+
+
+
 # ---------------------------------------------------------------------------
 # Guidelines analysis
 # ---------------------------------------------------------------------------
@@ -591,6 +818,25 @@ _OUTPUT_MATCH_TOKENS = [
 # Tokens that indicate keyword-list / enumeration padding rather than
 # a concise semantic condition.
 _KEYWORD_LIST_TOKENS = ['keywords:', 'note:', 'includes:', 'matches:', 'e.g.,', 'e.g.:']
+
+
+# Condition words / phrases that indicate the guideline fires universally
+# (every turn, regardless of what the user says) and therefore belongs in
+# the instructions block rather than behind a classifier call.
+_UNCONDITIONAL_TOKENS = [
+    'always', 'every time', 'at all times', 'for all', 'whenever possible',
+    'in all cases', 'regardless', 'by default', 'never ', 'do not ',
+    'make sure', 'ensure that', 'remember to',
+]
+
+# Condition words that indicate a tone / persona / style guideline.
+# These are pure behavioral defaults — no classifier is needed to route them.
+_PERSONA_STYLE_TOKENS = [
+    'politely', 'formally', 'professionally', 'friendly', 'concise',
+    'brief', 'empathetic', 'tone', 'language style', 'respond in',
+    'format your', 'use formal', 'use simple', 'use plain', 'be helpful',
+    'be respectful', 'be concise', 'be professional', 'be polite',
+]
 
 
 def _analyze_guidelines(config: Dict) -> List[Dict]:
@@ -610,6 +856,9 @@ def _analyze_guidelines(config: Dict) -> List[Dict]:
     6. Condition text duplicated in instructions — the same routing logic
        appears in both the guidelines and the free-form instructions block,
        so it is paid for twice per turn.
+    7. Instruction-suitable guidelines — guidelines that have no tool binding
+       and whose condition is unconditional or describes persona/tone/style;
+       these waste a classifier LLM call that instructions could replace for free.
     """
     findings = []
     guidelines = config.get("guidelines", [])
@@ -798,6 +1047,80 @@ def _analyze_guidelines(config: Dict) -> List[Dict]:
                 ),
                 "reference": "Guidelines Performance: Classifier output is re-injected into the main agent prompt"
             })
+
+    # ------------------------------------------------------------------ #
+    # Check 7: guideline candidates that should be plain instructions
+    # ------------------------------------------------------------------ #
+    # A guideline earns the extra classifier LLM call only when it needs to:
+    #   (a) conditionally invoke a specific *tool*, OR
+    #   (b) enforce truly event-driven routing that cannot be expressed as
+    #       a general behavioral rule.
+    # When a guideline has NO tool binding AND its condition is either
+    # unconditional ("always", "never", "ensure that…") or describes
+    # persona / tone / style, the classifier call is pure waste — the
+    # action text can live in instructions at zero additional LLM cost.
+    instruction_candidates = []
+
+    for g in guidelines:
+        if not isinstance(g, dict):
+            continue
+        name = g.get("display_name") or g.get("id") or "<unnamed>"
+        condition = g.get("condition", "").lower().strip()
+        has_tool = bool(g.get("tool", "").strip())
+
+        # Skip if it invokes a tool — the classifier is justified there
+        if has_tool:
+            continue
+
+        reason = None
+
+        # Unconditional pattern: condition fires on every user turn
+        if any(tok in condition for tok in _UNCONDITIONAL_TOKENS):
+            reason = "condition is unconditional ('always / never / ensure / make sure…') — it fires on every user turn"
+
+        # Persona / tone / style: pure behavioral default, never needs routing
+        elif any(tok in condition for tok in _PERSONA_STYLE_TOKENS):
+            reason = "condition describes persona, tone, or style — a behavioral default that does not need LLM-based routing"
+
+        # Very short condition with no discriminating keywords: likely a
+        # catch-all rule dressed as a guideline (< 8 words, no tool)
+        elif len(condition.split()) < 8:
+            reason = "condition is very short and non-discriminating — likely a catch-all rule that belongs in instructions"
+
+        if reason:
+            instruction_candidates.append((name, reason))
+
+    if instruction_candidates:
+        details = "; ".join(f"'{n}' ({r})" for n, r in instruction_candidates)
+        findings.append({
+            "category": "Guidelines",
+            "severity": "medium",
+            "anti_pattern": "Instruction-Suitable Guideline",
+            "issue": (
+                f"{len(instruction_candidates)} guideline(s) have no tool binding and a condition "
+                f"that does not require LLM-based routing: {details}. "
+                "In watsonx Orchestrate every guideline triggers a classifier LLM call before the "
+                "agent loop — this adds latency on every invocation even when the condition is "
+                "a blanket rule or style preference that applies universally."
+            ),
+            "recommendation": (
+                "Move these guidelines into the agent's 'instructions' block. Instructions are "
+                "compiled into the system prompt once and cost nothing extra per turn. "
+                "Reserve guidelines only for (1) conditions that invoke a specific *tool*, or "
+                "(2) event-driven routing rules that genuinely need per-turn LLM classification. "
+                "Example migration:\n"
+                "  BEFORE (guideline):\n"
+                "    condition: 'Always respond politely'\n"
+                "    action: 'Use a friendly, professional tone in every reply.'\n"
+                "  AFTER (instruction line):\n"
+                "    'Always use a friendly, professional tone in every reply.'"
+            ),
+            "reference": (
+                "WxO Performance Guide: 'Guidelines trigger an LLM call before the agent loop "
+                "starts — use guidelines only when needed, remove if not providing value.' "
+                "(developer.watson-orchestrate.ibm.com/tutorials/performance/performance-guide-v2-agent)"
+            )
+        })
 
     return findings
 
