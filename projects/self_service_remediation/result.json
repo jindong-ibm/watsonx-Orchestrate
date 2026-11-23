@@ -1,0 +1,206 @@
+{
+  "diagnosis_summary": "## Diagnosis Report\n\n**User-reported issue:** ibm-lh-lakehouse-wo-milvus-etcd-0 ImagePullBackOff\n**Cluster health:** WARNING - Multiple issues detected\n**Severity assessment:** HIGH\n**Error logs found:** 69\n**Warning logs found:** 369\n**Unhealthy pods:** 3\n\n### Matched Known Issues (12):\n1. **Known Issue #5** (confidence: 52%, component: general)\n2. **Known Issue #7** (confidence: 43%, component: general)\n3. **Known Issue #8** (confidence: 43%, component: general)\n\nProceeding with automated remediation for the top match.",
+  "matched_issues": [
+    {
+      "title": "Known Issue #5",
+      "confidence": 0.524,
+      "matching_evidence": [
+        "Pod wo-skill-server-5d55c66f79-8fh9h: Container wo-skill-server high restarts: 20",
+        "Pod wo-skill-server-5d55c66f79-c854l: Container wo-skill-server high restarts: 18",
+        "wo-docproc-dpi-scheduler-655ccc5c99-fvplm: {\"threadId\":\"32\",\"hostName\":\"wo-docproc-dpi-scheduler-655ccc5c99-fvplm\",\"method\":\"hasNext\",\"processId\":\"2\",\"level\":\"INFO\",\"source\":\"com.ibm.dpi.PostgresqlCon",
+        "wo-docproc-dpi-scheduler-655ccc5c99-fvplm: {\"threadId\":\"32\",\"hostName\":\"wo-docproc-dpi-scheduler-655ccc5c99-fvplm\",\"method\":\"hasNext\",\"processId\":\"2\",\"level\":\"INFO\",\"source\":\"com.ibm.dpi.PostgresqlCon",
+        "wo-docproc-dpi-scheduler-655ccc5c99-fvplm: {\"threadId\":\"32\",\"hostName\":\"wo-docproc-dpi-scheduler-655ccc5c99-fvplm\",\"method\":\"hasNext\",\"processId\":\"2\",\"level\":\"INFO\",\"source\":\"com.ibm.dpi.PostgresqlCon"
+      ],
+      "problem_description": "Run the following commands outside of Docker to check whether your system can resolve the hostname at all:# Resolve the registry hostname\nnslookup registry.us-south.assistant-builder.watson.cloud.ibm.com\n\n# Alternative using dig\ndig registry.us-south.assistant-builder.watson.cloud.ibm.com\nIf both commands return NXDOMAIN, no such host, or time out, the",
+      "solution_steps": "1 Configure Docker Desktop to use a public DNS serverOn macOS and Windows, Docker Desktop uses its own internal DNS resolver. Override it to use a public resolver such as Google (8.8.8.8) or Cloudflare (1.1.1.1):\n\nOpen Docker Desktop.\n\n\nGo to Settings \u2192 Docker Engine.\n\n\nAdd or merge the following JSON into the daemon configuration:\n{\n  \"dns\": [\"8.8.8.8\", \"1.1.1.1\"]\n}\n\n\n\nClick Apply & restart.\n\n\nRetry orchestrate server start.\n\nWorkaround 2 Add a static entry to /etc/hosts (Linux / macOS)If DNS r",
+      "component": "general",
+      "url": "https://developer.watson-orchestrate.ibm.com/release/troubleshooting"
+    },
+    {
+      "title": "Known Issue #7",
+      "confidence": 0.427,
+      "matching_evidence": [
+        "Pod wo-skill-server-5d55c66f79-8fh9h: Container wo-skill-server high restarts: 20",
+        "Pod wo-skill-server-5d55c66f79-c854l: Container wo-skill-server high restarts: 18",
+        "Pod/ibm-lh-lakehouse-wo-milvus-etcd-0: Failed - Failed to pull image \"preprod.icr.io/cp/watsonx-data/ibm-lh-etcd@sha256:6ec6b9be637aef2e703560aef32da16a6ce06623c93c7f4ad688e7f1b5a2a798\": unable to pul",
+        "wo-docproc-dpi-scheduler-655ccc5c99-fvplm: {\"threadId\":\"32\",\"hostName\":\"wo-docproc-dpi-scheduler-655ccc5c99-fvplm\",\"method\":\"hasNext\",\"processId\":\"2\",\"level\":\"INFO\",\"source\":\"com.ibm.dpi.PostgresqlCon",
+        "wo-docproc-dpi-scheduler-655ccc5c99-fvplm: {\"threadId\":\"32\",\"hostName\":\"wo-docproc-dpi-scheduler-655ccc5c99-fvplm\",\"method\":\"hasNext\",\"processId\":\"2\",\"level\":\"INFO\",\"source\":\"com.ibm.dpi.PostgresqlCon"
+      ],
+      "problem_description": "is inside the Docker daemon. Skip to",
+      "solution_steps": "Configure the draft and live environments with different connection kinds. Use key_value for draft (where the import happens) and keep SSO/OBO for live (where tool execution happens with a real user session):BASH# Create the connection\norchestrate connections add -a my_sso_obo_connection\n\n# Configure draft with key_value (placeholder credentials are sufficient for tool discovery)\norchestrate connections configure -a my_sso_obo_connection \\\n    --env draft --type team --kind key_value\norchestrate",
+      "component": "general",
+      "url": "https://developer.watson-orchestrate.ibm.com/release/troubleshooting"
+    },
+    {
+      "title": "Known Issue #8",
+      "confidence": 0.426,
+      "matching_evidence": [
+        "Pod wo-skill-server-5d55c66f79-8fh9h: Container wo-skill-server high restarts: 20",
+        "Pod wo-skill-server-5d55c66f79-c854l: Container wo-skill-server high restarts: 18",
+        "Pod/ibm-lh-lakehouse-wo-milvus-etcd-0: Failed - Failed to pull image \"preprod.icr.io/cp/watsonx-data/ibm-lh-etcd@sha256:6ec6b9be637aef2e703560aef32da16a6ce06623c93c7f4ad688e7f1b5a2a798\": unable to pul",
+        "wo-docproc-dpi-scheduler-655ccc5c99-fvplm: {\"threadId\":\"32\",\"hostName\":\"wo-docproc-dpi-scheduler-655ccc5c99-fvplm\",\"method\":\"hasNext\",\"processId\":\"2\",\"level\":\"INFO\",\"source\":\"com.ibm.dpi.PostgresqlCon",
+        "wo-docproc-dpi-scheduler-655ccc5c99-fvplm: {\"threadId\":\"32\",\"hostName\":\"wo-docproc-dpi-scheduler-655ccc5c99-fvplm\",\"method\":\"hasNext\",\"processId\":\"2\",\"level\":\"INFO\",\"source\":\"com.ibm.dpi.PostgresqlCon"
+      ],
+      "problem_description": "unrelated to the IBM registry. Reinstall Docker Desktop or check your firewall rules before you continue.",
+      "solution_steps": "See documentation for details.",
+      "component": "general",
+      "url": "https://developer.watson-orchestrate.ibm.com/release/troubleshooting"
+    },
+    {
+      "title": "Known Issue #12",
+      "confidence": 0.401,
+      "matching_evidence": [
+        "Pod wo-skill-server-5d55c66f79-8fh9h: Container wo-skill-server high restarts: 20",
+        "Pod wo-skill-server-5d55c66f79-c854l: Container wo-skill-server high restarts: 18",
+        "Pod/ibm-lh-lakehouse-wo-milvus-etcd-0: Failed - Failed to pull image \"preprod.icr.io/cp/watsonx-data/ibm-lh-etcd@sha256:6ec6b9be637aef2e703560aef32da16a6ce06623c93c7f4ad688e7f1b5a2a798\": unable to pul",
+        "wo-docproc-dpi-scheduler-655ccc5c99-fvplm: {\"threadId\":\"32\",\"hostName\":\"wo-docproc-dpi-scheduler-655ccc5c99-fvplm\",\"method\":\"hasNext\",\"processId\":\"2\",\"level\":\"INFO\",\"source\":\"com.ibm.dpi.PostgresqlCon",
+        "wo-docproc-dpi-scheduler-655ccc5c99-fvplm: {\"threadId\":\"32\",\"hostName\":\"wo-docproc-dpi-scheduler-655ccc5c99-fvplm\",\"method\":\"hasNext\",\"processId\":\"2\",\"level\":\"INFO\",\"source\":\"com.ibm.dpi.PostgresqlCon"
+      ],
+      "problem_description": "s and limitationsPreviousWelcome to IBM watsonx Orchestrate Agent Development KitNext\u2318IIBM watsonx Orchestrate ADK home pageCopyright information\u00a9 Copyright IBM Corporation 2025Privacy and accessibilityPrivacyAccessibilityTerms of use",
+      "solution_steps": "See documentation for details.",
+      "component": "general",
+      "url": "https://developer.watson-orchestrate.ibm.com/release/troubleshooting"
+    },
+    {
+      "title": "Known Issue #9",
+      "confidence": 0.395,
+      "matching_evidence": [
+        "Pod wo-skill-server-5d55c66f79-8fh9h: Container wo-skill-server high restarts: 20",
+        "Pod wo-skill-server-5d55c66f79-c854l: Container wo-skill-server high restarts: 18",
+        "wo-docproc-dpi-scheduler-655ccc5c99-fvplm: {\"threadId\":\"32\",\"hostName\":\"wo-docproc-dpi-scheduler-655ccc5c99-fvplm\",\"method\":\"hasNext\",\"processId\":\"2\",\"level\":\"INFO\",\"source\":\"com.ibm.dpi.PostgresqlCon",
+        "wo-docproc-dpi-scheduler-655ccc5c99-fvplm: {\"threadId\":\"32\",\"hostName\":\"wo-docproc-dpi-scheduler-655ccc5c99-fvplm\",\"method\":\"hasNext\",\"processId\":\"2\",\"level\":\"INFO\",\"source\":\"com.ibm.dpi.PostgresqlCon",
+        "wo-docproc-dpi-scheduler-655ccc5c99-fvplm: {\"threadId\":\"32\",\"hostName\":\"wo-docproc-dpi-scheduler-655ccc5c99-fvplm\",\"method\":\"hasNext\",\"processId\":\"2\",\"level\":\"INFO\",\"source\":\"com.ibm.dpi.PostgresqlCon"
+      ],
+      "problem_description": "is resolved and test again with nslookup.",
+      "solution_steps": "See documentation for details.",
+      "component": "general",
+      "url": "https://developer.watson-orchestrate.ibm.com/release/troubleshooting"
+    },
+    {
+      "title": "Known Issue #1",
+      "confidence": 0.363,
+      "matching_evidence": [
+        "Pod wo-skill-server-5d55c66f79-8fh9h: Container wo-skill-server high restarts: 20",
+        "Pod wo-skill-server-5d55c66f79-c854l: Container wo-skill-server high restarts: 18",
+        "wo-docproc-dpi-scheduler-655ccc5c99-fvplm: {\"threadId\":\"32\",\"hostName\":\"wo-docproc-dpi-scheduler-655ccc5c99-fvplm\",\"method\":\"hasNext\",\"processId\":\"2\",\"level\":\"INFO\",\"source\":\"com.ibm.dpi.PostgresqlCon",
+        "wo-docproc-dpi-scheduler-655ccc5c99-fvplm: {\"threadId\":\"32\",\"hostName\":\"wo-docproc-dpi-scheduler-655ccc5c99-fvplm\",\"method\":\"hasNext\",\"processId\":\"2\",\"level\":\"INFO\",\"source\":\"com.ibm.dpi.PostgresqlCon",
+        "wo-docproc-dpi-scheduler-655ccc5c99-fvplm: {\"threadId\":\"32\",\"hostName\":\"wo-docproc-dpi-scheduler-655ccc5c99-fvplm\",\"method\":\"hasNext\",\"processId\":\"2\",\"level\":\"INFO\",\"source\":\"com.ibm.dpi.PostgresqlCon"
+      ],
+      "problem_description": "happens because the Docker daemon runs as a root-owned process that communicates through a Unix socket. You must have the necessary permissions to access this socket.To solve this",
+      "solution_steps": "s:\nserver start command fails with pull access denied\n\nTry to log in manually with the following command:\ndocker login -u cp -p APIKEY cp.icr.io\n\n\n\nIf you manage to log in and the server still fails to start, locate the Docker config file. Usually, you find this file in ~/.docker/config.json. If it doesn\u2019t exist, you can create it.\n\n\nAdd the following content to the file:\n{\n  \"auths\": {\n    \"us.icr.io\": {\n      \"auth\": \"BASE64_ENCODED_APIKEY\"\n    }\n  }\n}\n\nWhere BASE64_ENCODED_APIKEY is the base6",
+      "component": "general",
+      "url": "https://developer.watson-orchestrate.ibm.com/release/troubleshooting"
+    },
+    {
+      "title": "Known Issue #4",
+      "confidence": 0.334,
+      "matching_evidence": [
+        "Pod wo-skill-server-5d55c66f79-8fh9h: Container wo-skill-server high restarts: 20",
+        "Pod wo-skill-server-5d55c66f79-c854l: Container wo-skill-server high restarts: 18",
+        "wo-docproc-dpi-scheduler-655ccc5c99-fvplm: {\"threadId\":\"32\",\"hostName\":\"wo-docproc-dpi-scheduler-655ccc5c99-fvplm\",\"method\":\"hasNext\",\"processId\":\"2\",\"level\":\"INFO\",\"source\":\"com.ibm.dpi.PostgresqlCon",
+        "wo-docproc-dpi-scheduler-655ccc5c99-fvplm: {\"threadId\":\"32\",\"hostName\":\"wo-docproc-dpi-scheduler-655ccc5c99-fvplm\",\"method\":\"hasNext\",\"processId\":\"2\",\"level\":\"INFO\",\"source\":\"com.ibm.dpi.PostgresqlCon",
+        "wo-docproc-dpi-scheduler-655ccc5c99-fvplm: {\"threadId\":\"32\",\"hostName\":\"wo-docproc-dpi-scheduler-655ccc5c99-fvplm\",\"method\":\"hasNext\",\"processId\":\"2\",\"level\":\"INFO\",\"source\":\"com.ibm.dpi.PostgresqlCon"
+      ],
+      "problem_description": "Verify your ADK version: Ensure you\u2019re using the latest version of the ADK CLI:\norchestrate --version\n\n\n\nUpdate to the latest version if needed:\npip install --upgrade ibm-watsonx-orchestrate\n\n\n\nReset and restart the server:\norchestrate server reset\norchestrate server start -e <path-.env-file> --with-doc-processing\n\n\n\nCheck your registry configuration: If you\u2019re using a custom registry or on-premises setup, verify that all required images are available in your registry. Contact your administrator",
+      "solution_steps": "3.Step 2 Check whether Docker itself can reach the network# Pull a public image to confirm Docker networking is functional\ndocker pull hello-world\n\n# Inspect the DNS servers the Docker daemon is using\ndocker info | grep -i dns\nIf docker pull hello-world fails, Docker has a general networking",
+      "component": "general",
+      "url": "https://developer.watson-orchestrate.ibm.com/release/troubleshooting"
+    },
+    {
+      "title": "Known Issue #11",
+      "confidence": 0.328,
+      "matching_evidence": [
+        "Pod wo-skill-server-5d55c66f79-8fh9h: Container wo-skill-server high restarts: 20",
+        "Pod wo-skill-server-5d55c66f79-c854l: Container wo-skill-server high restarts: 18",
+        "wo-docproc-dpi-scheduler-655ccc5c99-fvplm: {\"threadId\":\"32\",\"hostName\":\"wo-docproc-dpi-scheduler-655ccc5c99-fvplm\",\"method\":\"hasNext\",\"processId\":\"2\",\"level\":\"INFO\",\"source\":\"com.ibm.dpi.PostgresqlCon",
+        "wo-docproc-dpi-scheduler-655ccc5c99-fvplm: {\"threadId\":\"32\",\"hostName\":\"wo-docproc-dpi-scheduler-655ccc5c99-fvplm\",\"method\":\"hasNext\",\"processId\":\"2\",\"level\":\"INFO\",\"source\":\"com.ibm.dpi.PostgresqlCon",
+        "wo-docproc-dpi-scheduler-655ccc5c99-fvplm: {\"threadId\":\"32\",\"hostName\":\"wo-docproc-dpi-scheduler-655ccc5c99-fvplm\",\"method\":\"hasNext\",\"processId\":\"2\",\"level\":\"INFO\",\"source\":\"com.ibm.dpi.PostgresqlCon"
+      ],
+      "problem_description": ", you must install Docker Compose v2.On Ubuntu 24.04, for example, you can simply run the following commands:sudo apt-get remove docker-compose\nsudo apt-get install docker-compose-v2\nCheck your distribution repositories for the appropriate packages of Docker Compose v2.Homebrew not installed in UbuntuIf Homebrew is not installed in your Ubuntu distribution on WSL, you\u2019ll need to install it manually:\nOpen Ubuntu via the Start Menu\nCheck if Homebrew is already installed:\nBASHbrew --version\nIf you ",
+      "solution_steps": "See documentation for details.",
+      "component": "general",
+      "url": "https://developer.watson-orchestrate.ibm.com/release/troubleshooting"
+    },
+    {
+      "title": "Known Issue #2",
+      "confidence": 0.327,
+      "matching_evidence": [
+        "Pod wo-skill-server-5d55c66f79-8fh9h: Container wo-skill-server high restarts: 20",
+        "Pod wo-skill-server-5d55c66f79-c854l: Container wo-skill-server high restarts: 18",
+        "wo-docproc-dpi-scheduler-655ccc5c99-fvplm: {\"threadId\":\"32\",\"hostName\":\"wo-docproc-dpi-scheduler-655ccc5c99-fvplm\",\"method\":\"hasNext\",\"processId\":\"2\",\"level\":\"INFO\",\"source\":\"com.ibm.dpi.PostgresqlCon",
+        "wo-docproc-dpi-scheduler-655ccc5c99-fvplm: {\"threadId\":\"32\",\"hostName\":\"wo-docproc-dpi-scheduler-655ccc5c99-fvplm\",\"method\":\"hasNext\",\"processId\":\"2\",\"level\":\"INFO\",\"source\":\"com.ibm.dpi.PostgresqlCon",
+        "wo-docproc-dpi-scheduler-655ccc5c99-fvplm: {\"threadId\":\"32\",\"hostName\":\"wo-docproc-dpi-scheduler-655ccc5c99-fvplm\",\"method\":\"hasNext\",\"processId\":\"2\",\"level\":\"INFO\",\"source\":\"com.ibm.dpi.PostgresqlCon"
+      ],
+      "problem_description": ", follow these steps:\n\nAdd Docker to the group of users that can use sudo.\nsudo usermod -aG docker $USER\n\n\n\nRun the following command to log in to a new group:\nnewgrp docker\n\n\n\nCheck if your user belongs to the docker group:\ngroups\n\n\n\nTry running Docker\u2019s hello-world to check if you\u2019re able to run Docker:\ndocker run hello-world\n\n\nDocument processing image not found during server startupIf you encounter an error when starting the server with document processing enabled (--with-doc-processing or -",
+      "solution_steps": "If document processing is not critical for your current work, start the server without the -d or --with-doc-processing flag:\norchestrate server start -e <path-.env-file>\n\n\nNote: Document processing requires additional system resources. Ensure your system meets the minimum requirements of 24 GB RAM when using this feature.DNS resolution failure when pulling Docker images from the IBM registryWhen you run orchestrate server start, the ADK pulls Docker images from the IBM Container Registry. If you",
+      "component": "general",
+      "url": "https://developer.watson-orchestrate.ibm.com/release/troubleshooting"
+    },
+    {
+      "title": "Known Issue #10",
+      "confidence": 0.322,
+      "matching_evidence": [
+        "Pod wo-skill-server-5d55c66f79-8fh9h: Container wo-skill-server high restarts: 20",
+        "Pod wo-skill-server-5d55c66f79-c854l: Container wo-skill-server high restarts: 18",
+        "wo-docproc-dpi-scheduler-655ccc5c99-fvplm: {\"threadId\":\"32\",\"hostName\":\"wo-docproc-dpi-scheduler-655ccc5c99-fvplm\",\"method\":\"hasNext\",\"processId\":\"2\",\"level\":\"INFO\",\"source\":\"com.ibm.dpi.PostgresqlCon",
+        "wo-docproc-dpi-scheduler-655ccc5c99-fvplm: {\"threadId\":\"32\",\"hostName\":\"wo-docproc-dpi-scheduler-655ccc5c99-fvplm\",\"method\":\"hasNext\",\"processId\":\"2\",\"level\":\"INFO\",\"source\":\"com.ibm.dpi.PostgresqlCon",
+        "wo-docproc-dpi-scheduler-655ccc5c99-fvplm: {\"threadId\":\"32\",\"hostName\":\"wo-docproc-dpi-scheduler-655ccc5c99-fvplm\",\"method\":\"hasNext\",\"processId\":\"2\",\"level\":\"INFO\",\"source\":\"com.ibm.dpi.PostgresqlCon"
+      ],
+      "problem_description": "s as Windows systems do not support Docker natively.\nNo environment fileIf you\u2019re using Windows, you may have created your .env file on your local machine. To make it accessible within your Ubuntu environment in WSL, follow these steps:\nOpen File Explorer and enter the following path in the address bar, replacing yourUsername with your actual Linux username:\nPATH\\\\wsl.localhost\\Ubuntu\\home\\yourUsername\n\n\nOpen another File Explorer window and navigate to the location where your .env file is saved",
+      "solution_steps": "See documentation for details.",
+      "component": "general",
+      "url": "https://developer.watson-orchestrate.ibm.com/release/troubleshooting"
+    },
+    {
+      "title": "Known Issue #3",
+      "confidence": 0.319,
+      "matching_evidence": [
+        "Pod wo-skill-server-5d55c66f79-8fh9h: Container wo-skill-server high restarts: 20",
+        "Pod wo-skill-server-5d55c66f79-c854l: Container wo-skill-server high restarts: 18",
+        "wo-docproc-dpi-scheduler-655ccc5c99-fvplm: {\"threadId\":\"32\",\"hostName\":\"wo-docproc-dpi-scheduler-655ccc5c99-fvplm\",\"method\":\"hasNext\",\"processId\":\"2\",\"level\":\"INFO\",\"source\":\"com.ibm.dpi.PostgresqlCon",
+        "wo-docproc-dpi-scheduler-655ccc5c99-fvplm: {\"threadId\":\"32\",\"hostName\":\"wo-docproc-dpi-scheduler-655ccc5c99-fvplm\",\"method\":\"hasNext\",\"processId\":\"2\",\"level\":\"INFO\",\"source\":\"com.ibm.dpi.PostgresqlCon",
+        "wo-docproc-dpi-scheduler-655ccc5c99-fvplm: {\"threadId\":\"32\",\"hostName\":\"wo-docproc-dpi-scheduler-655ccc5c99-fvplm\",\"method\":\"hasNext\",\"processId\":\"2\",\"level\":\"INFO\",\"source\":\"com.ibm.dpi.PostgresqlCon"
+      ],
+      "problem_description": "occurs when required document processing Docker images are not available in the registry. This can happen with certain versions or registry configurations.To resolve this",
+      "solution_steps": "s.If nslookup succeeds but the ADK still fails, the",
+      "component": "general",
+      "url": "https://developer.watson-orchestrate.ibm.com/release/troubleshooting"
+    },
+    {
+      "title": "Known Issue #6",
+      "confidence": 0.319,
+      "matching_evidence": [
+        "Pod wo-skill-server-5d55c66f79-8fh9h: Container wo-skill-server high restarts: 20",
+        "Pod wo-skill-server-5d55c66f79-c854l: Container wo-skill-server high restarts: 18",
+        "wo-docproc-dpi-scheduler-655ccc5c99-fvplm: {\"threadId\":\"32\",\"hostName\":\"wo-docproc-dpi-scheduler-655ccc5c99-fvplm\",\"method\":\"hasNext\",\"processId\":\"2\",\"level\":\"INFO\",\"source\":\"com.ibm.dpi.PostgresqlCon",
+        "wo-docproc-dpi-scheduler-655ccc5c99-fvplm: {\"threadId\":\"32\",\"hostName\":\"wo-docproc-dpi-scheduler-655ccc5c99-fvplm\",\"method\":\"hasNext\",\"processId\":\"2\",\"level\":\"INFO\",\"source\":\"com.ibm.dpi.PostgresqlCon",
+        "wo-docproc-dpi-scheduler-655ccc5c99-fvplm: {\"threadId\":\"32\",\"hostName\":\"wo-docproc-dpi-scheduler-655ccc5c99-fvplm\",\"method\":\"hasNext\",\"processId\":\"2\",\"level\":\"INFO\",\"source\":\"com.ibm.dpi.PostgresqlCon"
+      ],
+      "problem_description": "is with the DNS resolver that you are using. Proceed to the following",
+      "solution_steps": "3 Configure a corporate proxy for DockerIf your organization routes all outbound traffic through a proxy, you must tell Docker about it so that image pulls can pass through.On macOS and Windows (Docker Desktop):\nOpen Docker Desktop \u2192 Settings \u2192 Resources \u2192 Proxies.\nEnable Manual proxy configuration.\nEnter your HTTP and HTTPS proxy addresses (for example, http://proxy.company.com:8080).\nAdd localhost,127.0.0.1 to the No proxy field.\nClick Apply & restart.\nOn Linux, configure the Docker daemon\u2019s s",
+      "component": "general",
+      "url": "https://developer.watson-orchestrate.ibm.com/release/troubleshooting"
+    }
+  ],
+  "cluster_health": "WARNING - Multiple issues detected",
+  "remediation_result": {
+    "issue_title": "Known Issue #5",
+    "steps_executed": [],
+    "overall_status": "NO_ACTIONS",
+    "post_check": "",
+    "recommendations": [
+      "Could not parse automated commands from the solution steps.",
+      "Please review the solution manually:",
+      "1 Configure Docker Desktop to use a public DNS serverOn macOS and Windows, Docker Desktop uses its own internal DNS resolver. Override it to use a public resolver such as Google (8.8.8.8) or Cloudflare (1.1.1.1):\n\nOpen Docker Desktop.\n\n\nGo to Settings \u2192 Docker Engine.\n\n\nAdd or merge the following JSON into the daemon configuration:\n{\n  \"dns\": [\"8.8.8.8\", \"1.1.1.1\"]\n}\n\n\n\nClick Apply & restart.\n\n\nRetry orchestrate server start.\n\nWorkaround 2 Add a static entry to /etc/hosts (Linux / macOS)If DNS r"
+    ],
+    "dry_run": true,
+    "remediation_safety": "static_filter",
+    "jev_match_confidence": null,
+    "jev_gate_note": null
+  },
+  "recommendations": [
+    "Could not parse automated commands from the solution steps.",
+    "Please review the solution manually:",
+    "1 Configure Docker Desktop to use a public DNS serverOn macOS and Windows, Docker Desktop uses its own internal DNS resolver. Override it to use a public resolver such as Google (8.8.8.8) or Cloudflare (1.1.1.1):\n\nOpen Docker Desktop.\n\n\nGo to Settings \u2192 Docker Engine.\n\n\nAdd or merge the following JSON into the daemon configuration:\n{\n  \"dns\": [\"8.8.8.8\", \"1.1.1.1\"]\n}\n\n\n\nClick Apply & restart.\n\n\nRetry orchestrate server start.\n\nWorkaround 2 Add a static entry to /etc/hosts (Linux / macOS)If DNS r"
+  ]
+}
